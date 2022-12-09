@@ -3,6 +3,7 @@ from .exceptions import *
 from .op_basic import *
 from .types import Constant, Operator, TreeNodeType, Var
 from collections import Counter
+from collections.abc import Callable, Sequence
 from enum import Enum
 from itertools import chain
 from more_itertools import sliding_window
@@ -113,11 +114,9 @@ class Lexer:
 	SQ = "'"
 	DQ = '"'
 	BACKSLASH = '\\'
-	DECIMAL_POINT = '.'
 	space_re: re.Pattern[str] = re.compile(r'\s', re.ASCII)
 	word_re: Optional[re.Pattern[str]] = re.compile(r'\w|[^\x00-\x7f]', re.ASCII)
 	symbol_re: Optional[re.Pattern[str]] = None
-	decimal_integer_re: re.Pattern[str] = re.compile(r'\d+') # Subset of word_re
 	assert not(word_re is None and symbol_re is None)
 
 	class S(Enum):
@@ -144,7 +143,8 @@ class Lexer:
 		op_symbols: list[str],
 		word_re: Optional[re.Pattern[str]] = None,
 		symbol_re: Optional[re.Pattern[str]] = None,
-		space_re: Optional[re.Pattern[str]] = None, **kwargs):
+		space_re: Optional[re.Pattern[str]] = None,
+		token_preprocessors: Optional[Sequence[Callable[[Sequence[Token]], Sequence[Token]]]] = None, **kwargs):
 
 		# Lexer constant check
 		SQ = kwargs.pop('SQ', Lexer.SQ)
@@ -178,6 +178,11 @@ class Lexer:
 
 		if space_re is not None:
 			self.space_re = space_re
+
+		if token_preprocessors is None:
+			self._token_preprocessors = ()
+		else:
+			self._token_preprocessors = token_preprocessors
 
 		ss = []
 		for symbol in op_symbols:
@@ -236,7 +241,6 @@ class Lexer:
 		SQ = self.SQ
 		DQ = self.DQ
 		BACKSLASH = self.BACKSLASH
-		DECIMAL_POINT = self.DECIMAL_POINT
 		S = self.S
 
 		# First step split
@@ -317,35 +321,11 @@ class Lexer:
 		# Note that no empty string in first list
 
 		# Second, restore numbers with decimal points
-		second: list[Token] = []
-		fill = [Token('', -1), Token('', -1)]
-		processed = -1
-		for i, (t1, t2, t3) in enumerate(sliding_window(chain(first, fill), 3)):
-			if processed >= i:
-				continue
-
-			s1, i1 = t1
-			s2, i2 = t2
-			s3, i3 = t3
-
-			if t2.is_symbol and s2 == DECIMAL_POINT:
-				# Have decimal point, of course...
-				if (i2 - i1) == len(s1) and i3 - i2 == 1:
-					# The three tokens are neighboring
-					if self.decimal_integer_re.fullmatch(s1) and self.decimal_integer_re.fullmatch(s3):
-						# Yeah
-						s1 = s1.lstrip('0')
-						if len(s1) == 0:
-							s1 = '0'
-						second.append(WordToken(f'{s1}{s2}{s3}', i1))
-						processed = i + 2
-						continue
-
-			second.append(t1)
-			processed = i
+		for token_preprocessor in self._token_preprocessors:
+			first = token_preprocessor(first)
 
 		result: list[Token] = []
-		for token in second:
+		for token in first:
 			if token.is_symbol:
 				find = self._find(token)
 				if find is None:
@@ -364,8 +344,10 @@ class Parser:
 	LP = '('
 	RP = ')'
 	COMMA = ',' # Acts like a binary infix operator with the lowest prec and left-asso
+	DECIMAL_POINT = '.'
 	imagine_re: re.Pattern[str] = re.compile(r'^(.*)[IiJj]$')
 	wildcard_re: re.Pattern[str] = re.compile(r'_')
+	decimal_integer_re: re.Pattern[str] = re.compile(r'\d+')
 
 	class S(Enum):
 		INITIAL = 0
@@ -575,7 +557,9 @@ class Parser:
 		self._op_symbols = set(symbols)
 
 		# Build the lexer
-		self._lexer = Lexer(symbols, **kwargs)
+		self._lexer = Lexer(symbols, **kwargs, token_preprocessors = (
+			self._token_preprocessor_for_decimal, 
+		))
 
 	def _pop_prefix(self, op_stack, total_stack):
 		while len(op_stack) > 0 and op_stack[-1]._is_prefix_op:
@@ -657,6 +641,36 @@ class Parser:
 			pass
 
 		return Var(s)
+
+	def _token_preprocessor_for_decimal(self, first: Sequence[Token]) -> Sequence[Token]:
+		second: list[Token] = []
+		fill = [Token('', -1), Token('', -1)]
+		processed = -1
+		for i, (t1, t2, t3) in enumerate(sliding_window(chain(first, fill), 3)):
+			if processed >= i:
+				continue
+
+			s1, i1 = t1
+			s2, i2 = t2
+			s3, i3 = t3
+
+			if t2.is_symbol and s2 == self.DECIMAL_POINT:
+				# Have decimal point, of course...
+				if (i2 - i1) == len(s1) and i3 - i2 == 1:
+					# The three tokens are neighboring
+					if self.decimal_integer_re.fullmatch(s1) and self.decimal_integer_re.fullmatch(s3):
+						# Yeah
+						s1 = s1.lstrip('0')
+						if len(s1) == 0:
+							s1 = '0'
+						second.append(WordToken(f'{s1}{s2}{s3}', i1))
+						processed = i + 2
+						continue
+
+			second.append(t1)
+			processed = i
+
+		return second
 
 	def _to_semantic_tree(self, node: SyntaxTreeNode) -> TreeNodeType:
 		OpNode = self.OpNode
