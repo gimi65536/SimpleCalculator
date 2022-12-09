@@ -66,12 +66,16 @@ class PrecedenceLayer:
 		return [o.symbol for o in self._ops]
 
 class Token:
-	_is_string_const: bool
-	_is_symbol: bool
+	_is_string_const: bool = False
+	_is_symbol: bool = False
+	_is_word: bool = False
 
 	def __init__(self, s: str, position: int):
 		self._s = s
 		self._p = position
+
+	def __iter__(self):
+		return iter((self._s, self._p))
 
 	@property
 	def string(self) -> str:
@@ -92,16 +96,17 @@ class Token:
 	def is_symbol(self):
 		return self._is_symbol
 
+	@property
+	def is_word(self):
+		return self._is_word
+
 class WordToken(Token):
-	_is_string_const = False
-	_is_symbol = False
+	_is_word = True
 
 class StringToken(Token):
 	_is_string_const = True
-	_is_symbol = False
 
 class SymbolToken(Token):
-	_is_string_const = False
 	_is_symbol = True
 
 class Lexer:
@@ -213,12 +218,12 @@ class Lexer:
 		self._find_cache[symbols] = None
 		return None
 
-	def _find(self, symbols: str, position: int) -> Optional[list[SymbolToken]]:
-		result = self._find_without_position(symbols)
+	def _find(self, token: SymbolToken) -> Optional[list[SymbolToken]]:
+		result = self._find_without_position(token.string)
 		if result is None:
 			return None
 
-		return [SymbolToken(token.string, token.position + position) for token in result]
+		return [SymbolToken(t.string, t.position + token.position) for t in result]
 
 	def is_word(self, c):
 		# Pre-condition: no spaces
@@ -235,7 +240,7 @@ class Lexer:
 		S = self.S
 
 		# First step split
-		first: list[tuple[int, str]] = []
+		first: list[Token] = []
 		status = S.SYMBOL
 		keep, keep_from, quote = '', 0, DQ
 		for i, c in enumerate(s, 1):
@@ -248,7 +253,7 @@ class Lexer:
 				case S.INQUOTE:
 					# keep_from won't update
 					if quote == c:
-						first.append((keep_from, keep + c))
+						first.append(StringToken(keep + c, keep_from))
 						keep = ''
 						status = S.SYMBOL
 					elif quote == BACKSLASH:
@@ -258,17 +263,17 @@ class Lexer:
 				case S.SYMBOL:
 					if self.space_re.match(c):
 						if len(keep) > 0:
-							first.append((keep_from, keep))
+							first.append(SymbolToken(keep, keep_from))
 						keep = ''
 					elif self.is_word(c):
 						if len(keep) > 0:
-							first.append((keep_from, keep))
+							first.append(SymbolToken(keep, keep_from))
 						keep = c
 						keep_from = i
 						status = S.WORD
 					elif c == SQ or c == DQ:
 						if len(keep) > 0:
-							first.append((keep_from, keep))
+							first.append(SymbolToken(keep, keep_from))
 						keep = c
 						keep_from = i
 						quote = c
@@ -280,7 +285,7 @@ class Lexer:
 				case S.WORD:
 					if self.space_re.match(c):
 						if len(keep) > 0:
-							first.append((keep_from, keep))
+							first.append(WordToken(keep, keep_from))
 						keep = ''
 					elif self.is_word(c):
 						if len(keep) == 0:
@@ -288,14 +293,14 @@ class Lexer:
 						keep += c
 					elif c == SQ or c == DQ:
 						if len(keep) > 0:
-							first.append((keep_from, keep))
+							first.append(WordToken(keep, keep_from))
 						keep = c
 						keep_from = i
 						quote = c
 						status = S.INQUOTE
 					else:
 						if len(keep) > 0:
-							first.append((keep_from, keep))
+							first.append(WordToken(keep, keep_from))
 						keep = c
 						keep_from = i
 						status = S.SYMBOL
@@ -304,46 +309,54 @@ class Lexer:
 			raise TokenizeError(keep_from, 'Quote not closed')
 
 		if len(keep) > 0:
-			first.append((keep_from, keep))
+			if status == S.WORD:
+				first.append(WordToken(keep, keep_from))
+			elif status == S.SYMBOL:
+				first.append(SymbolToken(keep, keep_from))
 
 		# Note that no empty string in first list
 
 		# Second, restore numbers with decimal points
-		second: list[tuple[int, str]] = []
-		fill = [(-1, ''), (-1, '')]
+		second: list[Token] = []
+		fill = [Token('', -1), Token('', -1)]
 		processed = -1
-		for i, ((i1, t1), (i2, t2), (i3, t3)) in enumerate(sliding_window(chain(first, fill), 3)):
+		for i, (t1, t2, t3) in enumerate(sliding_window(chain(first, fill), 3)):
 			if processed >= i:
 				continue
 
-			if t2 == DECIMAL_POINT:
+			s1, i1 = t1
+			s2, i2 = t2
+			s3, i3 = t3
+
+			if t2.is_symbol and s2 == DECIMAL_POINT:
 				# Have decimal point, of course...
-				if (i2 - i1) == len(t1) and i3 - i2 == 1:
+				if (i2 - i1) == len(s1) and i3 - i2 == 1:
 					# The three tokens are neighboring
-					if self.decimal_integer_re.fullmatch(t1) and self.decimal_integer_re.fullmatch(t3):
+					if self.decimal_integer_re.fullmatch(s1) and self.decimal_integer_re.fullmatch(s3):
 						# Yeah
-						t1 = t1.lstrip('0')
-						if len(t1) == 0:
-							t1 = '0'
-						second.append((i1, f'{t1}{t2}{t3}'))
+						s1 = s1.lstrip('0')
+						if len(s1) == 0:
+							s1 = '0'
+						second.append(WordToken(f'{s1}{s2}{s3}', i1))
 						processed = i + 2
 						continue
 
-			second.append((i1, t1))
+			second.append(t1)
 			processed = i
 
 		result: list[Token] = []
-		for i, token in second:
-			if token.startswith(SQ) or token.startswith(DQ):
-				result.append(StringToken(token[1:-1], i))
-			elif self.full_symbol(token):
-				find = self._find(token, i)
+		for token in second:
+			if token.is_symbol:
+				find = self._find(token)
 				if find is None:
-					raise TokenizeError(i, f'Tokenize error with the symbols "{token}"')
+					raise TokenizeError(token.position, f'Tokenize error with the symbols "{token.string}"')
 				result.extend(find)
+			elif token.is_string_const:
+				result.append(token)
+			elif token.is_word:
+				result.append(token)
 			else:
-				# May contain decimal points..., etc.
-				result.append(WordToken(token, i))
+				raise TokenizeError(token.position, f'Unknown type of token')
 
 		return result
 
