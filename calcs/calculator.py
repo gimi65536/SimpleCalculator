@@ -80,7 +80,7 @@ class Token:
 			self._o = origin
 
 	def __iter__(self):
-		return iter((self._s, self._p))
+		return iter((self._s, self._p, self._o))
 
 	@property
 	def string(self) -> str:
@@ -658,21 +658,20 @@ class Parser:
 			if processed >= i:
 				continue
 
-			s1, i1 = t1
-			s2, i2 = t2
-			s3, i3 = t3
+			s1, i1, o1 = t1
+			s2, i2, o2 = t2
+			s3, i3, o3 = t3
 
 			if t2.is_symbol and s2 == self.DECIMAL_POINT:
 				# Have decimal point, of course...
-				if (i2 - i1) == len(s1) and i3 - i2 == 1:
+				if (i2 - i1) == len(o1) and i3 - i2 == len(o2):
 					# The three tokens are neighboring
 					if self.decimal_integer_re.fullmatch(s1) and self.decimal_integer_re.fullmatch(s3):
 						# Yeah
-						ori_s1 = s1
 						s1 = s1.lstrip('0')
 						if len(s1) == 0:
 							s1 = '0'
-						second.append(WordToken(f'{s1}{s2}{s3}', i1, f'{ori_s1}{s2}{s3}'))
+						second.append(WordToken(f'{s1}{s2}{s3}', i1, f'{o1}{o2}{o3}'))
 						processed = i + 2
 						continue
 
