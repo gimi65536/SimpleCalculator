@@ -254,21 +254,24 @@ class Lexer:
 		# First step split
 		first: list[Token] = []
 		status = S.SYMBOL
-		keep, keep_from, quote = '', 0, DQ
+		keep, keep_original_str, keep_from, quote = '', '', 0, DQ
 		for i, c in enumerate(s, 1):
 			match status:
 				case S.INQUOTE_ESCAPE:
 					# Only escape that \? = ?
 					# keep_from won't update
 					keep += c
+					keep_original_str += c
 					status = S.INQUOTE
 				case S.INQUOTE:
 					# keep_from won't update
+					keep_original_str += c
 					if quote == c:
-						first.append(StringToken(keep, keep_from, f'{c}{keep}{c}'))
+						first.append(StringToken(keep, keep_from, keep_original_str))
 						keep = ''
+						keep_original_str = ''
 						status = S.SYMBOL
-					elif quote == BACKSLASH:
+					elif c == BACKSLASH:
 						status = S.INQUOTE_ESCAPE
 					else:
 						keep += c
@@ -287,6 +290,7 @@ class Lexer:
 						if len(keep) > 0:
 							first.append(SymbolToken(keep, keep_from))
 						keep = ''
+						keep_original_str = c
 						keep_from = i
 						quote = c
 						status = S.INQUOTE
@@ -307,6 +311,7 @@ class Lexer:
 						if len(keep) > 0:
 							first.append(WordToken(keep, keep_from))
 						keep = ''
+						keep_original_str = c
 						keep_from = i
 						quote = c
 						status = S.INQUOTE
