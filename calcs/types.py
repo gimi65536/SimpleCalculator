@@ -196,7 +196,7 @@ class BooleanConstant(Constant[bool]):
 
 	def cast(self, to_type):
 		if to_type is NumberConstant:
-			return NumberConstant(int(self._value))
+			return NumberConstant(simplify(int(self._value)))
 		elif to_type is BooleanConstant:
 			return self
 		elif to_type is StringConstant:

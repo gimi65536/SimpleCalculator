@@ -55,7 +55,7 @@ class TestConst:
 		assert const.value == I * 42
 
 	def test_3p14j(self):
-		const = parser.parse("3.14i")
+		const = parser.parse("3.14j")
 		assert const.is_number
 		assert const.value == I * Rational("3.14")
 
@@ -98,3 +98,61 @@ class TestConst:
 		const = parser.parse(R'''"foo bar   42\'\"\\\1\a...++ '"''')
 		assert const.is_str
 		assert const.value == R"""foo bar   42'"\1a...++ '"""
+
+	def test_dummy(self):
+		const = parser.parse("_")
+		assert const.is_number
+		assert const.is_dummy
+
+class TestPrecedence:
+	def test_prefix_1(self):
+		n = parser.parse("~+0").eval({})
+		assert n.is_bool
+		assert n.value is True
+
+	def test_prefix_2(self):
+		with pytest.raises(ValueError):
+			n = parser.parse("+~0").eval({})
+
+	def test_postfix(self):
+		# The default parser has only one postfix operator...
+		NotImplemented
+
+	def test_infix_1(self):
+		n = parser.parse("3 + 5 * 6").eval({})
+		assert n.value != 48
+		assert n.value == 33
+
+	def test_infix_2(self):
+		n = parser.parse("(3 + 5) * 6").eval({})
+		assert n.value == 48
+		assert n.value != 33
+
+	def test_left_1(self):
+		n = parser.parse("3 + 2 . 5").eval({})
+		assert n.value == "55"
+
+	def test_left_2(self):
+		n = parser.parse("3 . 2 + 5").eval({})
+		assert n.value == "325"		
+
+	def test_right(self):
+		n = parser.parse("3 ** 3 ** 3").eval({})
+		assert n.value == 3 ** 27
+		assert n.value != 27 ** 3
+
+	def test_pre_in_1(self):
+		n = parser.parse("~3 * 5").eval({})
+		assert n.value == 0
+
+	def test_pre_in_2(self):
+		n = parser.parse("~(3 * 5)").eval({})
+		assert n.value is False
+
+	def test_right_1(self):
+		n = parser.parse("3 * 2!").eval({})
+		assert n.value == 6
+
+	def test_right_2(self):
+		n = parser.parse("(3 * 2)!").eval({})
+		assert n.value == 720
