@@ -257,7 +257,7 @@ class Lexer:
 				case S.INQUOTE:
 					# keep_from won't update
 					if quote == c:
-						first.append(StringToken(keep + c, keep_from))
+						first.append(StringToken(keep, keep_from))
 						keep = ''
 						status = S.SYMBOL
 					elif quote == BACKSLASH:
@@ -278,7 +278,7 @@ class Lexer:
 					elif c == SQ or c == DQ:
 						if len(keep) > 0:
 							first.append(SymbolToken(keep, keep_from))
-						keep = c
+						keep = ''
 						keep_from = i
 						quote = c
 						status = S.INQUOTE
@@ -298,7 +298,7 @@ class Lexer:
 					elif c == SQ or c == DQ:
 						if len(keep) > 0:
 							first.append(WordToken(keep, keep_from))
-						keep = c
+						keep = ''
 						keep_from = i
 						quote = c
 						status = S.INQUOTE
