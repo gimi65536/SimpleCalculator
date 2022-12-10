@@ -1,6 +1,7 @@
 from __future__ import annotations
 from collections.abc import Callable, Mapping
-from sympy import Expr, simplify
+from sympy import Expr, floor, Integer, simplify
+from sympy.codegen.cfunctions import log10
 from typing import Any, Generic, TypeVar, Union
 
 class TreeNodeType:
@@ -178,8 +179,33 @@ class NumberConstant(Constant[Expr]):
 			s, v = '', self._value
 			if v.is_integer:
 				s = str(int(v))
-			elif v.is_Number:
-				# Rational, Float
+			elif v.is_Rational:
+				# Rational but not integer
+				p, q = v.p, v.q
+				factors = Integer(q).factors()
+				p2 = factors.pop(2, 0)
+				p5 = factors.pop(5, 0)
+				if len(factors) > 0:
+					# Infinite (Regular) decimal
+					s = str(v.evalf())
+				else:
+					if p2 > p5:
+						q *= 5 ** (p2 - p5)
+						p *= 5 ** (p2 - p5)
+					elif p5 > p2:
+						q *= 2 ** (p5 - p2)
+						p *= 2 ** (p5 - p2)
+
+					precision = log10(q)
+					assert precision.is_Integer
+					digit_of_p = floor(log10(p)) + 1
+					if precision < digit_of_p:
+						# x--x.y--y [y--y: precision]
+						s = str(p)
+						s = s[:(digit_of_p - precision)] + "." + s[(digit_of_p - precision):]
+					else:
+						s = "0." + ("0" * (precision - digit_of_p)) + str(p)
+			elif v.is_Float:
 				s = str(v.evalf())
 			elif v.is_irrational:
 				# Other real numbers
