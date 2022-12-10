@@ -1,6 +1,6 @@
 import pytest
 import calcs
-from sympy import I, Integer, Rational
+from sympy import I, Integer, Rational, zoo
 
 parser = calcs.give_basic_parser()
 
@@ -104,6 +104,57 @@ class TestConst:
 		assert const.is_number
 		assert const.is_dummy
 
+class TestParser:
+	def test_minus2(self):
+		n = parser.parse("3--5").eval({})
+		assert n.value == 8
+
+	def test_minus2(self):
+		n = parser.parse("3---5").eval({})
+		assert n.value == -2
+
+	def test_minus2(self):
+		n = parser.parse("3----5").eval({})
+		assert n.value == 8
+
+	def test_point_space_1(self):
+		n = parser.parse("0 .5").eval({})
+		assert n.value == "05"
+
+	def test_point_space_2(self):
+		n = parser.parse("0. 5").eval({})
+		assert n.value == "05"
+
+	def test_point_space_3(self):
+		n = parser.parse("0.5.6").eval({})
+		assert n.value == "0.56"
+
+	def test_point_space_4(self):
+		n = parser.parse("0. 5.6").eval({})
+		assert n.value == "05.6"
+
+	def test_incorrect_quote_1(self):
+		with pytest.raises(calcs.exceptions.TokenizeError):
+			n = parser.parse(R"""'123""")
+
+	def test_incorrect_quote_2(self):
+		with pytest.raises(calcs.exceptions.TokenizeError):
+			n = parser.parse(R'''"123''')
+
+	def test_incorrect_symbol(self):
+		with pytest.raises(calcs.exceptions.TokenizeError):
+			n = parser.parse("123@456")
+
+	def test_varname_1(self):
+		var = parser.parse("var")
+		assert isinstance(var, calcs.Var)
+		assert var.name == "var"
+
+	def test_varname_2(self):
+		var = parser.parse("000var")
+		assert isinstance(var, calcs.Var)
+		assert var.name == "000var"
+
 class TestPrecedence:
 	def test_prefix_1(self):
 		n = parser.parse("~+0").eval({})
@@ -149,10 +200,16 @@ class TestPrecedence:
 		n = parser.parse("~(3 * 5)").eval({})
 		assert n.value is False
 
-	def test_right_1(self):
+	def test_post_in_1(self):
 		n = parser.parse("3 * 2!").eval({})
 		assert n.value == 6
 
-	def test_right_2(self):
+	def test_post_in_2(self):
 		n = parser.parse("(3 * 2)!").eval({})
 		assert n.value == 720
+
+	def test_pre_post_in(self):
+		n = parser.parse("-3 * 4!").eval({})
+		assert n.value == -72
+		assert n.value != -479001600 # -(12!)
+		assert n.value != zoo # (-12)!
