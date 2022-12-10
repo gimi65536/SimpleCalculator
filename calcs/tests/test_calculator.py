@@ -4,6 +4,8 @@ from sympy import I, Integer, Rational, zoo
 
 parser = calcs.give_basic_parser()
 
+adv_parser = calcs.give_advanced_parser()
+
 class TestConst:
 	def test_42(self):
 		const = parser.parse("42")
@@ -155,6 +157,40 @@ class TestParser:
 		assert isinstance(var, calcs.Var)
 		assert var.name == "000var"
 
+	def test_word_unary(self):
+		n = adv_parser.parse("abs-42").eval({})
+		assert n.value == 42
+
+	def test_nullary(self):
+		n = adv_parser.parse("random ()").eval({})
+		assert n.is_number
+		assert n.value >= 0
+		assert n.value <= 1
+
+	def test_overload(self):
+		n = adv_parser.parse("random 42").eval({})
+		assert n.is_number
+		assert n.value >= 0
+		assert n.value <= 1
+
+	def test_tail_comma(self):
+		n = adv_parser.parse("len ('foo', )").eval({})
+		assert n.is_number
+		assert n.value == 3
+
+	def test_prefix_binary(self):
+		n = adv_parser.parse("pass ('foo', 'bar')").eval({})
+		assert n.is_str
+		assert n.value == "bar"
+
+	def test_wrong_ary_1(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = adv_parser.parse("random")
+
+	def test_wrong_ary_2(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = adv_parser.parse("random (114, 514)")
+
 class TestPrecedence:
 	def test_prefix_1(self):
 		n = parser.parse("~+0").eval({})
@@ -207,6 +243,14 @@ class TestPrecedence:
 	def test_post_in_2(self):
 		n = parser.parse("(3 * 2)!").eval({})
 		assert n.value == 720
+
+	def test_pre_post_1(self):
+		with pytest.raises(ValueError):
+			n = adv_parser.parse("!3!").eval({})
+
+	def test_pre_post_2(self):
+		n = adv_parser.parse("!(3!)").eval({})
+		assert n.value is False
 
 	def test_pre_post_in(self):
 		n = parser.parse("-3 * 4!").eval({})

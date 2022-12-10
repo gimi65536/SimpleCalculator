@@ -20,7 +20,7 @@ class LengthOperator(UnaryOperator):
 		if not a.is_str:
 			raise ValueError('Only apply to strings')
 
-		return NumberConstant(len(a.value))
+		return NumberConstant(S(len(a.value)))
 
 '''
 The function invokes a more flexible parser provided by SymPy with:
