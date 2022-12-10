@@ -671,14 +671,21 @@ class Parser:
 				# Have decimal point, of course...
 				if (i2 - i1) == len(o1) and i3 - i2 == len(o2):
 					# The three tokens are neighboring
-					if self.decimal_integer_re.fullmatch(s1) and self.decimal_integer_re.fullmatch(s3):
-						# Yeah
-						s1 = s1.lstrip('0')
-						if len(s1) == 0:
-							s1 = '0'
-						second.append(WordToken(f'{s1}{s2}{s3}', i1, f'{o1}{o2}{o3}'))
-						processed = i + 2
-						continue
+					if self.decimal_integer_re.fullmatch(s1):
+						check = False
+						if (m := self.imagine_re.fullmatch(s3)) and self.decimal_integer_re.fullmatch(m.group(1)):
+							check = True
+						elif self.decimal_integer_re.fullmatch(s3):
+							check = True
+
+						if check:
+							# Yeah
+							s1 = s1.lstrip('0')
+							if len(s1) == 0:
+								s1 = '0'
+							second.append(WordToken(f'{s1}{s2}{s3}', i1, f'{o1}{o2}{o3}'))
+							processed = i + 2
+							continue
 
 			second.append(t1)
 			processed = i
