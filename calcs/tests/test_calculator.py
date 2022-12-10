@@ -191,6 +191,82 @@ class TestParser:
 		with pytest.raises(calcs.exceptions.ParseError):
 			n = adv_parser.parse("random (114, 514)")
 
+	def test_lonely_prefix(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("~")
+
+	def test_lonely_postfix(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("!")
+
+	def test_lonely_infix(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("*")
+
+	def test_single_infix_1(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("5*")
+
+	def test_single_infix_2(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("*5")
+
+	def test_single_comma(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = adv_parser.parse("pass (, 42)")
+
+	def test_error_tuple_1(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = adv_parser.parse("pass (('foo', 'bar'), 42)")
+
+	def test_error_tuple_2(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = adv_parser.parse("pass (42, ('foo', 'bar'))")
+
+	def test_wait_literal_but_special(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("3+,")
+
+	def test_wait_literal_but_infix(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("3+*")
+
+	def test_wait_literal_but_postfix(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("3+!")
+
+	def test_unclosed_parenthesis(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("42)")
+
+	def test_comma_outsides_parenthesis(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("foo, bar")
+
+	def test_wait_infix_but_special(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("foo(42)")
+
+	def test_wait_infix_but_prefix(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("'foo' ~ 'bar'")
+
+	def test_wait_infix_but_word(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("foo bar")
+
+	def test_empty(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("")
+
+	def test_redundant_operator(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("3*")
+
+	def test_topmost_tuple(self):
+		with pytest.raises(calcs.exceptions.ParseError):
+			n = parser.parse("(foo, bar)")
+
 class TestPrecedence:
 	def test_prefix_1(self):
 		n = parser.parse("~+0").eval({})
