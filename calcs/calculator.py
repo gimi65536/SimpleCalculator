@@ -55,6 +55,14 @@ class PrecedenceLayer:
 		self._ops = ops
 		self._op_table: dict[str, type[Operator]] = {o.symbol: o.op for o in ops}
 
+	@classmethod
+	def left_asso(cls, *ops: OperatorInfo):
+		return cls(Associability.LEFT, *ops)
+
+	@classmethod
+	def right_asso(cls, *ops: OperatorInfo):
+		return cls(Associability.RIGHT, *ops)
+
 	def __iter__(self):
 		return iter(self._ops)
 

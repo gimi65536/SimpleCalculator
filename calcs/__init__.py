@@ -16,31 +16,31 @@ from . import (
 
 def give_basic_parser():
 	default_precedence_table = {
-		9: PrecedenceLayer(Associability.RIGHT,
+		9: PrecedenceLayer.right_asso(
 			OperatorInfo(op_num.PowOperator, '**')
 		),
-		10: PrecedenceLayer(Associability.LEFT,
+		10: PrecedenceLayer.left_asso(
 			OperatorInfo(op_basic.MultipleOperator, '*'),
 			OperatorInfo(op_basic.DivideOperator, '/'),
 			OperatorInfo(op_basic.IntegerDivideOperator, '//'),
 			OperatorInfo(op_basic.ModuloOperator, '%'),
 		),
-		20: PrecedenceLayer(Associability.LEFT,
+		20: PrecedenceLayer.left_asso(
 			OperatorInfo(op_basic.PlusOperator, '+'),
 			OperatorInfo(op_basic.MinusOperator, '-'),
 			OperatorInfo(op_basic.ConcatOperator, '.'),
 		),
-		70: PrecedenceLayer(Associability.LEFT,
+		70: PrecedenceLayer.left_asso(
 			OperatorInfo(op_basic.LessOperator, '<'),
 			OperatorInfo(op_basic.LeOperator, '<='),
 			OperatorInfo(op_basic.GreaterOperator, '>'),
 			OperatorInfo(op_basic.GeOperator, '>='),
 		),
-		80: PrecedenceLayer(Associability.LEFT,
+		80: PrecedenceLayer.left_asso(
 			OperatorInfo(op_basic.EqualOperator, '=='),
 			OperatorInfo(op_basic.NonequalOperator, '!='),
 		),
-		110: PrecedenceLayer(Associability.RIGHT,
+		110: PrecedenceLayer.right_asso(
 			OperatorInfo(op_basic.AndOperator, '&&'),
 			OperatorInfo(op_basic.OrOperator, '||'),
 			OperatorInfo(op_basic.ImplOperator, '->'),
@@ -64,38 +64,38 @@ def give_basic_parser():
 
 def give_advanced_parser():
 	default_precedence_table = {
-		9: PrecedenceLayer(Associability.RIGHT,
+		9: PrecedenceLayer.right_asso(
 			*OperatorInfo.factory(op_num.PowOperator, '**', '^')
 		),
-		10: PrecedenceLayer(Associability.LEFT,
+		10: PrecedenceLayer.left_asso(
 			OperatorInfo(op_basic.MultipleOperator, '*'),
 			OperatorInfo(op_basic.DivideOperator, '/'),
 			OperatorInfo(op_basic.IntegerDivideOperator, '//'),
 			OperatorInfo(op_basic.ModuloOperator, '%'),
 		),
-		20: PrecedenceLayer(Associability.LEFT,
+		20: PrecedenceLayer.left_asso(
 			OperatorInfo(op_basic.PlusOperator, '+'),
 			OperatorInfo(op_basic.MinusOperator, '-'),
 			OperatorInfo(op_basic.ConcatOperator, '.'),
 		),
-		70: PrecedenceLayer(Associability.LEFT,
+		70: PrecedenceLayer.left_asso(
 			OperatorInfo(op_basic.LessOperator, '<'),
 			OperatorInfo(op_basic.LeOperator, '<='),
 			OperatorInfo(op_basic.GreaterOperator, '>'),
 			OperatorInfo(op_basic.GeOperator, '>='),
 		),
-		80: PrecedenceLayer(Associability.LEFT,
+		80: PrecedenceLayer.left_asso(
 			OperatorInfo(op_basic.EqualOperator, '=='),
 			OperatorInfo(op_basic.NonequalOperator, '!='),
 		),
-		110: PrecedenceLayer(Associability.RIGHT,
+		110: PrecedenceLayer.right_asso(
 			*OperatorInfo.factory(op_basic.AndOperator, '&&', 'and'),
 			*OperatorInfo.factory(op_basic.OrOperator, '||', 'or'),
 			OperatorInfo(op_basic.ImplOperator, '->'),
 			OperatorInfo(op_basic.XorOperator, 'xor'),
 			OperatorInfo(op_basic.IffOperator, '<->'),
 		),
-		200: PrecedenceLayer(Associability.RIGHT,
+		200: PrecedenceLayer.right_asso(
 			OperatorInfo(op_assign.AssignOperator, '='),
 		),
 	}
