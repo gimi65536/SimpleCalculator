@@ -45,3 +45,7 @@ def test_assign_var(x, y, yvalue, mapping):
 	assert n.content == yvalue
 	assert mapping[x].content == yvalue
 	assert mapping[y].content == yvalue
+
+def test_assign_dummy(x, mapping):
+	n = adv_parser.parse("x = _").eval(mapping)
+	assert not n.content.is_dummy
