@@ -16,6 +16,12 @@ class RandomWithSeedOperator(UnaryOperator):
 
 		return NumberConstant(Float(rng.random()))
 
+class SetSeedOperator(UnaryOperator):
+	def eval(self, mapping):
+		a = self.eval_and_extract_constant(0, mapping)
+		rng.seed(str(a.value))
+		return BooleanConstant(True)
+
 class _RandomIntOperator:
 	def _eval(self, a: Constant, b: Constant, seed = None):
 		if (a.is_number and b.is_number) and (a.value.is_real and b.value.is_real):
