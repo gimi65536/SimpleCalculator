@@ -83,7 +83,7 @@ class DecrementOperator(UnaryOperator):
 		raise ValueError('Only apply to number variables')
 
 # x--
-class PostIncrementOperator(UnaryOperator):
+class PostDecrementOperator(UnaryOperator):
 	def eval(self, mapping):
 		a = self.eval_operand(0, mapping)
 		if a.is_lvalue and a.content.is_number:
