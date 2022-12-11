@@ -152,6 +152,17 @@ class Constant(TreeNodeType, Value, Generic[ConstType]):
 	def is_str(self) -> bool:
 		return self._is_str
 
+	'''
+	Dummy notates whether a constant is "processed" in the semantics even
+	if the function returns input constant object directly in the
+	implementation.
+	For example, the prefix operator "+" does nothing and returns the input
+	number constant, but it is "processed" in the semantics, so it needs to
+	de-dummy the constant before returning.
+	By contrast, the pass operator (the comma operator in C/C++), the value
+	at right should be returned instantly without any additional processing,
+	so the dummy attribute will remain.
+	'''
 	@property
 	def is_dummy(self) -> bool:
 		return self._is_dummy
