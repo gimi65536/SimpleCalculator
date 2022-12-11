@@ -77,7 +77,7 @@ class _RandomComplexOperator:
 
 		raise ValueError('Only apply real numbers as input')
 
-class RandomComplexWithSeedOperator(Operator, _RandomComplexOperator):
+class RandomComplexOperator(Operator, _RandomComplexOperator):
 	ary = 4
 	def eval(self, mapping):
 		a, b, c, d = self.eval_and_extract_constants(mapping)
