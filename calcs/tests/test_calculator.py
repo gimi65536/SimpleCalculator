@@ -106,6 +106,12 @@ class TestConst:
 		assert const.is_number
 		assert const.is_dummy
 
+	def test_complicated_expr(self):
+		const = parser.parse("4*(5/2 - I)*(10 + 4*I)/29").eval({})
+		assert const.value != 4 # Cannot be implicitly simplified to 4
+		str_const = const.to_str() # But to_str should do simplification
+		assert str_const.value == "4"
+
 class TestParser:
 	def test_minus2(self):
 		n = parser.parse("3--5").eval({})
