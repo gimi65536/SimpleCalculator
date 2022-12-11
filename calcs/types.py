@@ -275,6 +275,10 @@ class LValue(Value):
 				self._content = const
 				self._bookkeeping[self] = (ori, const)
 
+	@property
+	def value(self):
+		return self._content.value
+
 class Operator(TreeNodeType):
 	# An immutable type
 	ary: int

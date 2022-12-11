@@ -95,6 +95,9 @@ def give_advanced_parser():
 			OperatorInfo(op_basic.XorOperator, 'xor'),
 			OperatorInfo(op_basic.IffOperator, '<->'),
 		),
+		200: PrecedenceLayer(Associability.RIGHT,
+			OperatorInfo(op_assign.AssignOperator, '='),
+		),
 	}
 
 	default_prefix_ops = [
