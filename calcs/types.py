@@ -179,7 +179,7 @@ class NumberConstant(Constant[Expr]):
 	# Thus the value expressions should satisfy "is_number"
 	def __init__(self, value):
 		assert value.is_number
-		super().__init__(value.simplify())
+		super().__init__(value)
 
 	def cast(self, to_type):
 		if to_type is NumberConstant:
