@@ -27,7 +27,7 @@ class FactorialOperator(UnaryOperator):
 		if not a.is_number:
 			raise ValueError('Only apply to numbers')
 
-		n = a.value
+		n = a.value.simplify()
 		if n.is_integer and n.is_nonnegative:
 			return NumberConstant(sympy.factorial(n))
 		else:
