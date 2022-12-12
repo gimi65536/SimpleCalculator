@@ -171,6 +171,9 @@ class NumberConstant(Constant[Expr]):
 	_is_number = True
 	_is_bool = False
 	_is_str = False
+	# This shared dict is warranted to be thread-safe because for every expr, there is only
+	# one possible simplified expr.
+	_simplify_cache: dict[Expr, Expr] = {}
 	# The term "Number" in our program includes all complex numbers
 	# So it is possible to have many "types" of SymPy data other than "SymPy.Number" 
 	# such as I (ImaginaryUnit), 3*I (Mul), or 1+3*I (Add), they are not instances of SymPy.Number
@@ -180,17 +183,16 @@ class NumberConstant(Constant[Expr]):
 	def __init__(self, value):
 		assert value.is_number
 		super().__init__(value)
-		self._simplified = None # cache
 
 	def __str__(self):
 		return str(self._simplify())
 
-	def _simplify(self):
-		if self._simplified is None:
-			self._simplified = self._value.simplify()
-		return self._simplified
+	def _simplify(self) -> Expr:
+		if self._value not in self._simplify_cache:
+			self._simplify_cache[self._value] = self._value.simplify()
+		return self._simplify_cache[self._value]
 
-	def simplify(self):
+	def simplify(self) -> NumberConstant:
 		return NumberConstant(self._simplify())
 
 	def is_(self, what):
