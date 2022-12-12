@@ -183,14 +183,14 @@ class IffOperator(_BinaryBoolOperator):
 		return a == b
 
 class NandOperator(_BinaryBoolOperator):
-	def _logic(self, a, b, /):
+	def _logic(self, a, b = None, /):
 		if a:
 			return self._not(b)
 		else:
 			return True
 
 class NorOperator(_BinaryBoolOperator):
-	def _logic(self, a, b, /):
+	def _logic(self, a, b = None, /):
 		if not a:
 			return self._not(b)
 		else:
@@ -200,14 +200,14 @@ class NorOperator(_BinaryBoolOperator):
 # Of course these two ops are here to invoke for free
 
 class ConverseImplOperator(_BinaryBoolOperator):
-	def _logic(self, a, b, /):
+	def _logic(self, a, b = None, /):
 		if not a:
 			return self._not(b)
 		else:
 			return True
 
 class ConverseNimplOperator(_BinaryBoolOperator):
-	def _logic(self, a, b, /):
+	def _logic(self, a, b = None, /):
 		if not a:
 			return b
 		else:
