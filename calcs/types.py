@@ -180,17 +180,32 @@ class NumberConstant(Constant[Expr]):
 	def __init__(self, value):
 		assert value.is_number
 		super().__init__(value)
+		self._simplified = None # cache
 
 	def __str__(self):
-		return str(self._value.simplify())
+		return str(self._simplify())
+
+	def _simplify(self):
+		if self._simplified is None:
+			self._simplified = self._value.simplify()
+		return self._simplified
+
+	def simplify(self):
+		return NumberConstant(self._simplify())
+
+	def is_(self, what):
+		result = getattr(self._value, f'is_{what}')
+		if result is None:
+			result = getattr(self._simplify(), f'is_{what}')
+		return result
 
 	def cast(self, to_type):
 		if to_type is NumberConstant:
 			return self
 		elif to_type is BooleanConstant:
-			return BooleanConstant(bool(self._value.simplify()))
+			return BooleanConstant(bool(self._simplify()))
 		elif to_type is StringConstant:
-			s, v = '', self._value.simplify()
+			s, v = '', self._simplify()
 			if v.is_integer:
 				s = str(int(v))
 			elif v.is_Rational:

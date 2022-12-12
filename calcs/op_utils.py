@@ -16,12 +16,11 @@ class PrintOperator(UnaryOperator):
 		a = self.eval_and_extract_constant(0, mapping)
 
 		if a.is_number:
-			n = a.value.simplify()
-			if n.is_integer:
-				return StringConstant(str(n))
-			if n.is_real:
-				return StringConstant(str(n.evalf()))
-			c = complex(n)
+			if a.is_('integer'):
+				return StringConstant(str(a))
+			if a.is_('real'):
+				return StringConstant(str(a.value.evalf()))
+			c = complex(a.simplify().value)
 			real = str(int(c.real)) if c.real.is_integer() else str(c.real)
 			imag = str(int(c.imag)) if c.imag.is_integer() else str(c.imag)
 			return StringConstant(f'({real}+{imag}j)')
@@ -63,13 +62,12 @@ class RepeatTwiceOperator(UnaryOperator):
 class RepeatTimesOperator(BinaryOperator):
 	def eval(self, mapping):
 		a = self.eval_and_extract_constant(0, mapping)
-		if a.is_number and n.is_integer and n.is_positive:
-			n = a.value.simplify()
-			if n.is_integer and n.is_positive:
-				for _ in range(n):
-					b = self.eval_operand(1, mapping)
+		if a.is_number and a.is_('integer') and a.is_('positive'):
+			n = a.simplify().value
+			for _ in range(n):
+				b = self.eval_operand(1, mapping)
 
-				return b
+			return b
 
 		raise ValueError('Only accept positive integer as the first argument')
 
@@ -82,9 +80,8 @@ class RaiseOperator(UnaryOperator):
 class DecimalPointOperator(UnaryOperator):
 	def eval(self, mapping):
 		a = self.eval_and_extract_constant(0, mapping)
-		if a.is_number:
-			n = a.value.simplify()
-			if n.is_integer and n.is_nonnegative:
-				return NumberConstant(parse_expr(f'0.{n}', transformations = (auto_number, rationalize)))
+		if a.is_number and a.is_('integer') and a.is_('nonnegative'):
+			n = a.simplify().value
+			return NumberConstant(parse_expr(f'0.{n}', transformations = (auto_number, rationalize)))
 
 		raise ValueError('Only apply to nonnegative integers')

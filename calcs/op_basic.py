@@ -44,8 +44,8 @@ class MultipleOperator(BinaryOperator):
 			if a.is_bool:
 				a = a.to_number()
 
-			n = a.value.simplify()
-			if not (n.is_integer and n.nonnegative):
+			n = a.simplify().value
+			if not (n.is_integer and n.is_nonnegative):
 				raise ValueError('String multiplication is valid only for non-negative integer')
 
 			return StringConstant(n * b.value)
