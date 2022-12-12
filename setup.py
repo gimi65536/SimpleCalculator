@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
 	name = 'SimpleCalculator',
-	version = '0.0.1',
+	version = '0.0.2',
 	description = 'Simple calculator',
 	packages = ['calcs'],
 	install_requires = [

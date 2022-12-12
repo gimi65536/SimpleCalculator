@@ -55,6 +55,14 @@ class PrecedenceLayer:
 		self._ops = ops
 		self._op_table: dict[str, type[Operator]] = {o.symbol: o.op for o in ops}
 
+	@classmethod
+	def left_asso(cls, *ops: OperatorInfo):
+		return cls(Associability.LEFT, *ops)
+
+	@classmethod
+	def right_asso(cls, *ops: OperatorInfo):
+		return cls(Associability.RIGHT, *ops)
+
 	def __iter__(self):
 		return iter(self._ops)
 
@@ -475,9 +483,9 @@ class Parser:
 			self.position = position
 
 	def __init__(self,
-		prefix_ops: list[OperatorInfo],
-		postfix_ops: list[OperatorInfo],
-		ptable: list[PrecedenceLayer] | dict[int, PrecedenceLayer],
+		prefix_ops: list[OperatorInfo] = [],
+		postfix_ops: list[OperatorInfo] = [],
+		ptable: list[PrecedenceLayer] | dict[int, PrecedenceLayer] = {},
 		imagine_re: Optional[re.Pattern[str]] = None,
 		wildcard_re: Optional[re.Pattern[str]] = None, **kwargs):
 

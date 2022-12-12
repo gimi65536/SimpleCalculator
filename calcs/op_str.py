@@ -35,14 +35,26 @@ what SymPy wants.
 
 Specially, we make "i/j/J" be I, "e" be E, and 'Pi/PI' be pi.
 
-Note that an equality check with variables "x = 5" CANNOT be written
-in "x == 5" because "'x' is a variable, not a constant 5."
-We solve this problem by inputing all the information of the contexts
-(mapping) to local_dict.
-This solution hurts performance when the contexts are extremely large.
-
 Also, of course, the function using SymPy parser cannot handle any
 assignment clauses to interfere the variable spaces.
+
+Note that "=" is not equivalent to "==": "=" checks the symbolic
+equivalence, e.g., "4*(5/2 - I)*(10 + 4*I)/29 = 4",
+but "==" checks whether two expressions are "exactly" same,
+e.g., "4*(5/2 - I)*(10 + 4*I)/29 != 4"
+("2+2 == 4" is True because "2+2" will be *implicitly*
+evaluated to "4").
+
+Therefore, an equality check with variables "x = 5" CANNOT be written
+in "x == 5" because "'x' is a variable, not exactly a constant 5."
+We solve this problem by inputing all the information of the contexts
+(mapping) to local_dict.
+However, this solution hurts performance when the contexts are extremely large.
+Worse, it still cannot solve the problem in "x == n" if either "x" or "n" denotes
+complicated expressions such as "4*(5/2 - I)*(10 + 4*I)/29"
+but the other denotes "4".
+
+USE "=" INSTEAD OF "==" IF POSSUBLE TO GET WHAT YOU WANT, ANYWAY.
 '''
 class SymParseOperator(UnaryOperator):
 	def eval(self, mapping):
@@ -80,6 +92,11 @@ class SymParseOperator(UnaryOperator):
 				convert_equals_signs,
 				rationalize
 			), local_dict = local_dict)
+
+			if isinstance(n, bool):
+				return BooleanConstant(n)
+
+			n = n.simplify()
 
 			if isinstance(n, Expr):
 				return NumberConstant(n)

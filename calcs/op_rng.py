@@ -12,9 +12,67 @@ class RandomWithSeedOperator(UnaryOperator):
 		a = self.eval_and_extract_constant(0, mapping)
 
 		if not a.is_dummy:
-			rng.seed(str(a.value))
+			rng.seed(str(a))
 
 		return NumberConstant(Float(rng.random()))
+
+class SetSeedOperator(UnaryOperator):
+	def eval(self, mapping):
+		a = self.eval_and_extract_constant(0, mapping)
+		rng.seed(str(a))
+		return BooleanConstant(True)
+
+class _RandomRangeOperator:
+	def _eval(self, a: Constant, b: Constant, c: Constant, seed = None):
+		if a.is_number and b.is_number and c.is_number:
+			na, nb, nc = a.value, b.value, c.value
+			steps = ((nb - na) / nc).simplify()
+			if not steps.is_real or steps < 0:
+				raise ValueError('Invalid range')
+
+			if seed is not None and not seed.is_dummy:
+				rng.seed(str(seed))
+
+			return NumberConstant(na + nc * rng.randint(0, floor(steps)))
+
+		raise ValueError('Only apply numbers as input')
+
+class RandomRangeZeroOperator(UnaryOperator, _RandomRangeOperator):
+	def eval(self, mapping):
+		a = self.eval_and_extract_constant(0, mapping)
+
+		return self._eval(NumberConstant(Integer(0)), a, NumberConstant(Integer(1)))
+
+class RandomRangeZeroWithSeedOperator(BinaryOperator, _RandomRangeOperator):
+	def eval(self, mapping):
+		a, b = self.eval_and_extract_constants(mapping)
+
+		return self._eval(NumberConstant(Integer(0)), a, NumberConstant(Integer(1)), b)
+
+class RandomRangeStepOneOperator(BinaryOperator, _RandomRangeOperator):
+	def eval(self, mapping):
+		a, b = self.eval_and_extract_constants(mapping)
+
+		return self._eval(a, b, NumberConstant(Integer(1)))
+
+class RandomRangeStepOneWithSeedOperator(TernaryOperator, _RandomRangeOperator):
+	def eval(self, mapping):
+		a, b, c = self.eval_and_extract_constants(mapping)
+
+		return self._eval(a, b, NumberConstant(Integer(1)), c)
+
+class RandomRangeOperator(TernaryOperator, _RandomRangeOperator):
+	def eval(self, mapping):
+		a, b, c = self.eval_and_extract_constants(mapping)
+
+		return self._eval(a, b, c)
+
+class RandomRangeWithSeedOperator(Operator, _RandomRangeOperator):
+	ary = 4
+	def eval(self, mapping):
+		a, b, c, d = self.eval_and_extract_constants(mapping)
+
+		return self._eval(a, b, c, d)
 
 class _RandomIntOperator:
 	def _eval(self, a: Constant, b: Constant, seed = None):
@@ -27,7 +85,7 @@ class _RandomIntOperator:
 				raise ValueError('Not valid interval: no integer is included')
 
 			if seed is not None and not seed.is_dummy:
-				rng.seed(str(seed.value))
+				rng.seed(str(seed))
 
 			return NumberConstant(Integer(rng.randint(int(na), int(nb))))
 
@@ -49,7 +107,7 @@ class _RandomRealOperator:
 	def _eval(self, a: Constant, b: Constant, seed = None):
 		if (a.is_number and b.is_number) and (a.value.is_real and b.value.is_real):
 			if seed is not None and not seed.is_dummy:
-				rng.seed(str(seed.value))
+				rng.seed(str(seed))
 
 			return NumberConstant(Number(rng.uniform(a.value, b.value)))
 
@@ -71,13 +129,13 @@ class _RandomComplexOperator:
 	def _eval(self, a: Constant, b: Constant, c: Constant, d: Constant, seed = None):
 		if (a.is_number and b.is_number) and (a.value.is_real and b.value.is_real and c.value.is_real and d.value.is_real):
 			if seed is not None and not seed.is_dummy:
-				rng.seed(str(seed.value))
+				rng.seed(str(seed))
 
 			return NumberConstant(random_complex_number(a.value, c.value, b.value, d.value))
 
 		raise ValueError('Only apply real numbers as input')
 
-class RandomComplexWithSeedOperator(Operator, _RandomComplexOperator):
+class RandomComplexOperator(Operator, _RandomComplexOperator):
 	ary = 4
 	def eval(self, mapping):
 		a, b, c, d = self.eval_and_extract_constants(mapping)

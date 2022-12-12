@@ -1,5 +1,6 @@
 from .types import *
 from .ops import BinaryOperator, TernaryOperator, UnaryOperator
+from sympy import Eq, Ne
 from typing import Optional, overload
 
 class PlusOperator(BinaryOperator):
@@ -43,10 +44,11 @@ class MultipleOperator(BinaryOperator):
 			if a.is_bool:
 				a = a.to_number()
 
-			if not (a.value.is_integer and a.value.nonnegative):
+			n = a.simplify().value
+			if not (n.is_integer and n.is_nonnegative):
 				raise ValueError('String multiplication is valid only for non-negative integer')
 
-			return StringConstant(a.value * b.value)
+			return StringConstant(n * b.value)
 		elif a.is_bool and b.is_bool:
 			return BooleanConstant(a.value and b.value)
 		else:
@@ -181,14 +183,14 @@ class IffOperator(_BinaryBoolOperator):
 		return a == b
 
 class NandOperator(_BinaryBoolOperator):
-	def _logic(self, a, b, /):
+	def _logic(self, a, b = None, /):
 		if a:
 			return self._not(b)
 		else:
 			return True
 
 class NorOperator(_BinaryBoolOperator):
-	def _logic(self, a, b, /):
+	def _logic(self, a, b = None, /):
 		if not a:
 			return self._not(b)
 		else:
@@ -198,14 +200,14 @@ class NorOperator(_BinaryBoolOperator):
 # Of course these two ops are here to invoke for free
 
 class ConverseImplOperator(_BinaryBoolOperator):
-	def _logic(self, a, b, /):
+	def _logic(self, a, b = None, /):
 		if not a:
 			return self._not(b)
 		else:
 			return True
 
 class ConverseNimplOperator(_BinaryBoolOperator):
-	def _logic(self, a, b, /):
+	def _logic(self, a, b = None, /):
 		if not a:
 			return b
 		else:
@@ -236,7 +238,7 @@ class EqualOperator(BinaryOperator):
 		if type(a) != type(b):
 			return BooleanConstant(False)
 
-		return BooleanConstant(a.value == b.value)
+		return BooleanConstant(bool(Eq(a.value, b.value).simplify()))
 
 class NonequalOperator(BinaryOperator):
 	def eval(self, mapping):
@@ -245,7 +247,7 @@ class NonequalOperator(BinaryOperator):
 		if type(a) != type(b):
 			return BooleanConstant(True)
 
-		return BooleanConstant(a.value != b.value)
+		return BooleanConstant(bool(Ne(a.value, b.value).simplify()))
 
 class _BinaryComparisonOperator(BinaryOperator):
 	def eval(self, mapping):
@@ -256,16 +258,17 @@ class _BinaryComparisonOperator(BinaryOperator):
 			b = b.to_number()
 
 		if a.is_number and b.is_number:
-			if a.value.is_real and b.value.is_real:
+			if a.is_('real') and b.is_('real'):
 				return BooleanConstant(self._comp(a.value, b.value))
 			else:
-				return BooleanConstant(False)
+				return BooleanConstant(bool(Eq(a.value, b.value).simplify()))
 		elif a.is_str and b.is_str:
 			return BooleanConstant(self._compstr(a.value, b.value))
 		else:
 			raise ValueError('Unable to compare between string and number/Boolean')
 
 	def _comp(self, a: Expr, b: Expr, /) -> bool:
+		# @Pre is_real
 		raise NotImplementedError
 
 	def _compstr(self, a: str, b: str, /) -> bool:
@@ -273,28 +276,28 @@ class _BinaryComparisonOperator(BinaryOperator):
 
 class LessOperator(_BinaryComparisonOperator):
 	def _comp(self, a, b, /):
-		return a < b
+		return bool((a < b).simplify())
 
 	def _compstr(self, a, b, /):
 		return a < b
 
 class LeOperator(_BinaryComparisonOperator):
 	def _comp(self, a, b, /):
-		return a <= b
+		return bool((a <= b).simplify())
 
 	def _compstr(self, a, b, /):
 		return a <= b
 
 class GreaterOperator(_BinaryComparisonOperator):
 	def _comp(self, a, b, /):
-		return a > b
+		return bool((a > b).simplify())
 
 	def _compstr(self, a, b, /):
 		return a > b
 
 class GeOperator(_BinaryComparisonOperator):
 	def _comp(self, a, b, /):
-		return a >= b
+		return bool((a >= b).simplify())
 
 	def _compstr(self, a, b, /):
 		return a >= b
