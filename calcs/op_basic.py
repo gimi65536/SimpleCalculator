@@ -1,6 +1,6 @@
 from .types import *
 from .ops import BinaryOperator, TernaryOperator, UnaryOperator
-from sympy import Eq
+from sympy import Eq, Ne
 from typing import Optional, overload
 
 class PlusOperator(BinaryOperator):
@@ -247,7 +247,7 @@ class NonequalOperator(BinaryOperator):
 		if type(a) != type(b):
 			return BooleanConstant(True)
 
-		return BooleanConstant(not bool(Eq(a.value, b.value).simplify()))
+		return BooleanConstant(bool(Ne(a.value, b.value).simplify()))
 
 class _BinaryComparisonOperator(BinaryOperator):
 	def eval(self, mapping):
@@ -258,18 +258,17 @@ class _BinaryComparisonOperator(BinaryOperator):
 			b = b.to_number()
 
 		if a.is_number and b.is_number:
-			na, nb = a.value.simplify(), b.value.simplify()
-			if na.is_real and nb.is_real:
-				return BooleanConstant(self._comp(na, nb))
+			if a.is_('real') and b.is_('real'):
+				return BooleanConstant(self._comp(a.value, b.value))
 			else:
-				return BooleanConstant(False)
+				return BooleanConstant(bool(Eq(a.value, b.value).simplify()))
 		elif a.is_str and b.is_str:
 			return BooleanConstant(self._compstr(a.value, b.value))
 		else:
 			raise ValueError('Unable to compare between string and number/Boolean')
 
 	def _comp(self, a: Expr, b: Expr, /) -> bool:
-		# @Pre simplified
+		# @Pre is_real
 		raise NotImplementedError
 
 	def _compstr(self, a: str, b: str, /) -> bool:
@@ -277,28 +276,28 @@ class _BinaryComparisonOperator(BinaryOperator):
 
 class LessOperator(_BinaryComparisonOperator):
 	def _comp(self, a, b, /):
-		return a < b
+		return bool((a < b).simplify())
 
 	def _compstr(self, a, b, /):
 		return a < b
 
 class LeOperator(_BinaryComparisonOperator):
 	def _comp(self, a, b, /):
-		return a <= b
+		return bool((a <= b).simplify())
 
 	def _compstr(self, a, b, /):
 		return a <= b
 
 class GreaterOperator(_BinaryComparisonOperator):
 	def _comp(self, a, b, /):
-		return a > b
+		return bool((a > b).simplify())
 
 	def _compstr(self, a, b, /):
 		return a > b
 
 class GeOperator(_BinaryComparisonOperator):
 	def _comp(self, a, b, /):
-		return a >= b
+		return bool((a >= b).simplify())
 
 	def _compstr(self, a, b, /):
 		return a >= b

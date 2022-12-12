@@ -383,3 +383,46 @@ class TestLogic:
 		n = self.parser.parse("nimpl(x = 0, x = 5)").eval(mapping)
 		assert mapping[x].value == 0
 		assert n.value is False
+
+class TestCompare:
+	def test_eq(self):
+		n = parser.parse("(10+4i)/(2.5+i) == 4").eval({})
+		assert n.is_bool
+		assert n.value is True
+
+	def test_ne(self):
+		n = parser.parse("(10+4i)/(2.5+i) != 4").eval({})
+		assert n.is_bool
+		assert n.value is False
+
+	def test_g(self):
+		n = parser.parse("(10+4i)/(2.5+i) > 4").eval({})
+		assert n.is_bool
+		assert n.value is False
+
+	def test_ge(self):
+		n = parser.parse("(10+4i)/(2.5+i) >= 4").eval({})
+		assert n.is_bool
+		assert n.value is True
+
+	def test_l(self):
+		n = parser.parse("(10+4i)/(2.5+i) < 4").eval({})
+		assert n.is_bool
+		assert n.value is False
+
+	def test_le(self):
+		n = parser.parse("(10+4i)/(2.5+i) <= 4").eval({})
+		assert n.is_bool
+		assert n.value is True
+
+	def test_complex(self):
+		n = parser.parse("(1 < I) || (1 == I) || (1 > I)").eval({})
+		assert n.is_bool
+		assert n.value is False
+
+	def test_between_complex(self):
+		# Any of >, >=, <, <= cannot be applied on complex numbers in SymPy
+		# But we allow >= <= to be applied since "=" is there...
+		n = parser.parse("I >= I").eval({})
+		assert n.is_bool
+		assert n.value is True
