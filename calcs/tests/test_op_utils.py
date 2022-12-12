@@ -82,3 +82,8 @@ def test_decimal_str():
 	n = adv_parser.parse(". '00114514'").eval({})
 	assert n.is_number
 	assert n.value == Rational("0.00114514")
+
+def test_decimal(mapping):
+	n = adv_parser.parse(".x").eval(mapping)
+	assert n.is_number
+	assert n.value == Rational("0.42")
