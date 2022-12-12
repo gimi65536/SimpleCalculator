@@ -181,13 +181,16 @@ class NumberConstant(Constant[Expr]):
 		assert value.is_number
 		super().__init__(value)
 
+	def __str__(self):
+		return str(self._value.simplify())
+
 	def cast(self, to_type):
 		if to_type is NumberConstant:
 			return self
 		elif to_type is BooleanConstant:
-			return BooleanConstant(bool(self._value))
+			return BooleanConstant(bool(self._value.simplify()))
 		elif to_type is StringConstant:
-			s, v = '', self._value
+			s, v = '', self._value.simplify()
 			if v.is_integer:
 				s = str(int(v))
 			elif v.is_Rational:

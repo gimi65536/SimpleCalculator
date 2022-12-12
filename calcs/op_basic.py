@@ -1,5 +1,6 @@
 from .types import *
 from .ops import BinaryOperator, TernaryOperator, UnaryOperator
+from sympy import Eq
 from typing import Optional, overload
 
 class PlusOperator(BinaryOperator):
@@ -43,10 +44,11 @@ class MultipleOperator(BinaryOperator):
 			if a.is_bool:
 				a = a.to_number()
 
-			if not (a.value.is_integer and a.value.nonnegative):
+			n = a.value.simplify()
+			if not (n.is_integer and n.nonnegative):
 				raise ValueError('String multiplication is valid only for non-negative integer')
 
-			return StringConstant(a.value * b.value)
+			return StringConstant(n * b.value)
 		elif a.is_bool and b.is_bool:
 			return BooleanConstant(a.value and b.value)
 		else:
@@ -236,7 +238,7 @@ class EqualOperator(BinaryOperator):
 		if type(a) != type(b):
 			return BooleanConstant(False)
 
-		return BooleanConstant(a.value == b.value)
+		return BooleanConstant(bool(Eq(a.value, b.value).simplify()))
 
 class NonequalOperator(BinaryOperator):
 	def eval(self, mapping):
@@ -245,7 +247,7 @@ class NonequalOperator(BinaryOperator):
 		if type(a) != type(b):
 			return BooleanConstant(True)
 
-		return BooleanConstant(a.value != b.value)
+		return BooleanConstant(not bool(Eq(a.value, b.value).simplify()))
 
 class _BinaryComparisonOperator(BinaryOperator):
 	def eval(self, mapping):
@@ -256,8 +258,9 @@ class _BinaryComparisonOperator(BinaryOperator):
 			b = b.to_number()
 
 		if a.is_number and b.is_number:
-			if a.value.is_real and b.value.is_real:
-				return BooleanConstant(self._comp(a.value, b.value))
+			na, nb = a.value.simplify(), b.value.simplify()
+			if na.is_real and nb.is_real:
+				return BooleanConstant(self._comp(na, nb))
 			else:
 				return BooleanConstant(False)
 		elif a.is_str and b.is_str:
@@ -266,6 +269,7 @@ class _BinaryComparisonOperator(BinaryOperator):
 			raise ValueError('Unable to compare between string and number/Boolean')
 
 	def _comp(self, a: Expr, b: Expr, /) -> bool:
+		# @Pre simplified
 		raise NotImplementedError
 
 	def _compstr(self, a: str, b: str, /) -> bool:

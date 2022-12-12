@@ -79,7 +79,7 @@ class SymParseOperator(UnaryOperator):
 				implicit_multiplication,
 				convert_equals_signs,
 				rationalize
-			), local_dict = local_dict)
+			), local_dict = local_dict).simplify()
 
 			if isinstance(n, Expr):
 				return NumberConstant(n)
