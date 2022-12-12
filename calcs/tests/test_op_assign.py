@@ -1,6 +1,6 @@
 import pytest
 import calcs
-from calcs import Var, LValue
+from calcs import LValue, Var
 from calcs.op_assign import *
 from sympy import Integer, Rational
 

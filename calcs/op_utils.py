@@ -83,5 +83,7 @@ class DecimalPointOperator(UnaryOperator):
 		if a.is_number and a.is_('integer') and a.is_('nonnegative'):
 			n = a.simplify().value
 			return NumberConstant(parse_expr(f'0.{n}', transformations = (auto_number, rationalize)))
+		elif a.is_str and all(c.isdigit() for c in a.value):
+			return NumberConstant(parse_expr(f'0.{a.value}', transformations = (auto_number, rationalize)))
 
-		raise ValueError('Only apply to nonnegative integers')
+		raise ValueError('Only apply to nonnegative integers or decimal strings')
