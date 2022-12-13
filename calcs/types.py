@@ -275,7 +275,7 @@ class StringConstant(Constant[str]):
 class LValue(Value):
 	_is_lvalue = True
 
-	def __init__(self, var: Var, const: Constant, bookkeeping: dict[LValue, tuple[Constant, Constant]] = {}):
+	def __init__(self, var: Var, const: Constant, bookkeeping: Optional[dict[LValue, tuple[Constant, Constant]]] = None):
 		self._var = var
 		self._content = const
 		self._bookkeeping = bookkeeping
@@ -293,18 +293,21 @@ class LValue(Value):
 
 	@content.setter
 	def content(self, const: Constant):
-		if self in self._bookkeeping:
-			self._content = const
-			ori = self._bookkeeping[self][0]
-			if ori == const:
-				self._bookkeeping.pop(self)
-			else:
-				self._bookkeeping[self] = (ori, const)
-		else:
-			ori = self._content
-			if ori != const:
+		if self._bookkeeping is not None:
+			if self in self._bookkeeping:
 				self._content = const
-				self._bookkeeping[self] = (ori, const)
+				ori = self._bookkeeping[self][0]
+				if ori == const:
+					self._bookkeeping.pop(self)
+				else:
+					self._bookkeeping[self] = (ori, const)
+			else:
+				ori = self._content
+				if ori != const:
+					self._content = const
+					self._bookkeeping[self] = (ori, const)
+		else:
+			self._content = const
 
 	@property
 	def value(self):
