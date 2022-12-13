@@ -11,7 +11,7 @@ class TreeNodeType:
 	# it is syntactically not needed to make var == lvalue.var
 	# And, semantically, this feature helps us to
 	# implement "reference."
-	def eval(self, mapping: Mapping[Var, LValue]) -> Value:
+	def eval(self, mapping: Mapping[Var, LValue], **kwargs) -> Value:
 		raise NotImplementedError
 
 	def apply_var(self, f: Callable[[Var], Any]):
