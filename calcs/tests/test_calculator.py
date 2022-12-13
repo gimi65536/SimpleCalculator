@@ -273,6 +273,47 @@ class TestParser:
 		with pytest.raises(calcs.exceptions.ParseError):
 			n = parser.parse("(foo, bar)")
 
+class TestAnonymous:
+	def test_assign(self):
+		with pytest.raises(ValueError):
+			n = adv_parser.parse("x = 42").eval({})
+
+	def test_assign_anonymous(self):
+		mapping = {}
+		n = adv_parser.parse("x = 42").eval(mapping, anonymous_var = True)
+		assert n.is_lvalue
+		assert n.var.name == "x"
+		assert n.var.scope is calcs.TEMPVAR
+		assert mapping[n.var].value == 42
+
+	def test_plus(self):
+		with pytest.raises(ValueError):
+			n = adv_parser.parse("x + 42").eval({})
+
+	def test_plus_anonymous(self):
+		mapping = {}
+		n = adv_parser.parse("x + 42").eval(mapping, anonymous_var = True)
+		assert n.is_number
+		assert n.value == Integer(42)
+		keys = list(mapping.keys())
+		assert len(keys) == 1
+		x = keys[0]
+		assert x.name == "x"
+		assert x.scope is calcs.TEMPVAR
+		assert mapping[x].value == 0
+
+	def test_concat_anonymous(self):
+		mapping = {}
+		n = adv_parser.parse("x . 42").eval(mapping, anonymous_var = True)
+		assert n.is_str
+		assert n.value == "042"
+		keys = list(mapping.keys())
+		assert len(keys) == 1
+		x = keys[0]
+		assert x.name == "x"
+		assert x.scope is calcs.TEMPVAR
+		assert mapping[x].value == 0
+
 class TestPrecedence:
 	def test_prefix_1(self):
 		n = parser.parse("~+0").eval({})

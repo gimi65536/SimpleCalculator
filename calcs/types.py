@@ -4,6 +4,8 @@ from sympy import Expr, floor, Integer, simplify
 from sympy.codegen.cfunctions import log10
 from typing import Any, Generic, TypeVar, Union
 
+TEMPVAR = object()
+
 class TreeNodeType:
 	def eval(self, mapping: Mapping[Var, LValue]) -> Value:
 		raise NotImplementedError
@@ -51,7 +53,14 @@ class Var(TreeNodeType):
 
 	def eval(self, mapping, **kwargs):
 		if self not in mapping:
-			raise ValueError(f'Variable "{self._name}" is undefined')
+			if kwargs.get('anonymous_var', False):
+				var = Var(self._name, TEMPVAR)
+				if var not in mapping:
+					mapping[var] = LValue(var, NumberConstant(Integer(0)))
+
+				return mapping[var]
+			else:
+				raise ValueError(f'Variable "{self._name}" is undefined')
 
 		return mapping[self]
 
