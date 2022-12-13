@@ -118,6 +118,7 @@ def give_advanced_parser(additional_prefix = [], additional_postfix = []):
 		OperatorInfo(op_utils.ReverseOperator, 'reverse'),
 		*OperatorInfo.factory(op_utils.RaiseOperator, 'raise', 'throw'),
 		OperatorInfo(op_utils.DecimalPointOperator, '.'),
+		OperatorInfo(op_utils.MoveOperator, 'move'),
 	]
 
 	default_postfix_ops = [

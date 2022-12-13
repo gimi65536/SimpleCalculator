@@ -87,3 +87,7 @@ class DecimalPointOperator(UnaryOperator):
 			return NumberConstant(parse_expr(f'0.{a.value}', transformations = (auto_number, rationalize)))
 
 		raise ValueError('Only apply to nonnegative integers or decimal strings')
+
+class MoveOperator(UnaryOperator):
+	def eval(self, mapping, **kwargs):
+		return self.eval_and_extract_constant(0, mapping, **kwargs)

@@ -87,3 +87,13 @@ def test_decimal(mapping):
 	n = adv_parser.parse(".x").eval(mapping)
 	assert n.is_number
 	assert n.value == Rational("0.42")
+
+def test_move_var(mapping):
+	n = adv_parser.parse("move(x)").eval(mapping)
+	assert n.is_constant
+	assert n.value == 42
+
+def test_move_const(mapping):
+	n = adv_parser.parse("move(1+1)").eval(mapping)
+	assert n.is_constant
+	assert n.value == 2
