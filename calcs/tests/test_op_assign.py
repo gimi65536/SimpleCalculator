@@ -70,7 +70,7 @@ def test_ref(mapping):
 	assert n.value == 42
 
 def test_ref_assign(x, mapping):
-	n = adv_parser.parse("pass(z :=& x, z = y.514)").eval(mapping)
+	n = adv_parser.parse("z :=& x; z = y.514").eval(mapping)
 	assert len(mapping) == 3
 	assert n.is_lvalue
 	assert n.var.name == "x"

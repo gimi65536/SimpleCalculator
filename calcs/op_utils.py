@@ -31,6 +31,7 @@ class PassOperator(BinaryOperator):
 	def eval(self, mapping, **kwargs):
 		return self.eval_operands(mapping, **kwargs)[1]
 
+# It is weird to use reverse onto infix operators unless you know what you do
 class ReverseOperator(UnaryOperator):
 	def eval(self, mapping, **kwargs):
 		operand = self._operands[0]

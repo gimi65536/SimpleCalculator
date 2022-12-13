@@ -100,6 +100,9 @@ def give_advanced_parser(additional_prefix = [], additional_postfix = []):
 			OperatorInfo(op_assign.DeclareOperator, ':='),
 			OperatorInfo(op_assign.DeclareReferenceOperator, ':=&'),
 		),
+		10000: PrecedenceLayer.left_asso(
+			OperatorInfo(op_utils.PassOperator, ';')
+		),
 	}
 
 	default_prefix_ops = [

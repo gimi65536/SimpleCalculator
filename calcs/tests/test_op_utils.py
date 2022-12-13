@@ -39,6 +39,12 @@ def test_pass(x, mapping):
 	assert n.value is True
 	assert mapping[x].value == 0
 
+def test_chain_pass(x, mapping):
+	n = adv_parser.parse("x = 0; x = x + 3; x = x * 5").eval(mapping)
+	# abc = 15, acb = 3, bac = 0, bca = 0, cab = 3, cba = 0
+	assert n.is_lvalue
+	assert n.value == 15
+
 def test_reverse():
 	n = adv_parser.parse("reverse (3 / 42)").eval({})
 	assert n.is_number
