@@ -117,3 +117,5 @@ class StrictSymParseOperator(SymParseOperator):
 			raise ValueError(f'Cannot parse {result.value} into a number/Boolean value')
 
 		return result
+
+__all__ = filter_operator(globals())

@@ -1,5 +1,6 @@
 from .types import *
 from .ops import BinaryOperator, TernaryOperator, UnaryOperator
+from .utils import filter_operator
 from sympy import Eq, Expr, Ne
 from typing import Optional, overload
 
@@ -301,3 +302,5 @@ class GeOperator(_BinaryComparisonOperator):
 
 	def _compstr(self, a, b, /):
 		return a >= b
+
+__all__ = filter_operator(globals())

@@ -1,5 +1,6 @@
 from .types import *
 from .ops import BinaryOperator
+from .utils import filter_operator
 
 class AssignOperator(BinaryOperator):
 	def eval(self, mapping, **kwargs):
@@ -48,3 +49,5 @@ class DeclareReferenceOperator(BinaryOperator):
 			return b
 
 		raise ValueError('A variable name is needed')
+
+__all__ = filter_operator(globals())
