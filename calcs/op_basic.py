@@ -1,6 +1,6 @@
 from .types import *
 from .ops import BinaryOperator, TernaryOperator, UnaryOperator
-from sympy import Eq, Ne
+from sympy import Eq, Expr, Ne
 from typing import Optional, overload
 
 class PlusOperator(BinaryOperator):

@@ -12,6 +12,18 @@ from typing import cast, Optional
 import random
 import re
 
+__all__ = (
+	'Associability',
+	'OperatorInfo',
+	'PrecedenceLayer',
+	'Token',
+	'WordToken',
+	'StringToken',
+	'SymbolToken',
+	'Lexer',
+	'Parser',
+)
+
 class Associability(Enum):
 	NOTCARE = 0
 	LEFT = 1
