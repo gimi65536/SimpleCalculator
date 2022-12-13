@@ -49,3 +49,15 @@ def test_assign_var(x, y, yvalue, mapping):
 def test_assign_dummy(x, mapping):
 	n = adv_parser.parse("x = _").eval(mapping)
 	assert not n.content.is_dummy
+
+def test_declare():
+	mapping = {}
+	n = adv_parser.parse("x := 42").eval(mapping)
+	assert n.is_lvalue
+	assert n.var.name == "x"
+	assert n.var.scope is None
+	assert mapping[n.var].value == 42
+
+def test_redeclare():
+	with pytest.raises(ValueError):
+		n = adv_parser.parse("x := x := 42").eval({})

@@ -11,3 +11,21 @@ class AssignOperator(BinaryOperator):
 
 		a.content = b.without_dummy()
 		return a
+
+class DeclareOperator(BinaryOperator):
+	def eval(self, mapping, **kwargs):
+		a = self._operands[0]
+		if isinstance(a, Var):
+			b = self.eval_and_extract_constant(1, mapping, **kwargs)
+
+			# Not a temporary anonymous var
+			# It has a naive scope and no bookkeeping
+			var = Var(a.name, None)
+			if a in mapping:
+				raise ValueError(f'The variable {a.name} has existed')
+
+			lv = LValue(var, b.without_dummy())
+			mapping[var] = lv
+			return lv
+
+		raise ValueError('A variable name is needed')
