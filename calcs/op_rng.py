@@ -4,12 +4,12 @@ from sympy import ceiling, Float, floor, Integer, Number
 from sympy.core.random import rng, random_complex_number
 
 class RandomOperator(NullaryOperator):
-	def eval(self, mapping):
+	def eval(self, mapping, **kwargs):
 		return NumberConstant(Float(rng.random()))
 
 class RandomWithSeedOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		if not a.is_dummy:
 			rng.seed(str(a))
@@ -17,8 +17,8 @@ class RandomWithSeedOperator(UnaryOperator):
 		return NumberConstant(Float(rng.random()))
 
 class SetSeedOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 		rng.seed(str(a))
 		return BooleanConstant(True)
 
@@ -38,39 +38,39 @@ class _RandomRangeOperator:
 		raise ValueError('Only apply numbers as input')
 
 class RandomRangeZeroOperator(UnaryOperator, _RandomRangeOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		return self._eval(NumberConstant(Integer(0)), a, NumberConstant(Integer(1)))
 
 class RandomRangeZeroWithSeedOperator(BinaryOperator, _RandomRangeOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(NumberConstant(Integer(0)), a, NumberConstant(Integer(1)), b)
 
 class RandomRangeStepOneOperator(BinaryOperator, _RandomRangeOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(a, b, NumberConstant(Integer(1)))
 
 class RandomRangeStepOneWithSeedOperator(TernaryOperator, _RandomRangeOperator):
-	def eval(self, mapping):
-		a, b, c = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b, c = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(a, b, NumberConstant(Integer(1)), c)
 
 class RandomRangeOperator(TernaryOperator, _RandomRangeOperator):
-	def eval(self, mapping):
-		a, b, c = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b, c = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(a, b, c)
 
 class RandomRangeWithSeedOperator(Operator, _RandomRangeOperator):
 	ary = 4
-	def eval(self, mapping):
-		a, b, c, d = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b, c, d = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(a, b, c, d)
 
@@ -92,14 +92,14 @@ class _RandomIntOperator:
 		raise ValueError('Only apply real numbers as input')
 
 class RandomIntOperator(BinaryOperator, _RandomIntOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(a, b)
 
 class RandomIntWithSeedOperator(TernaryOperator, _RandomIntOperator):
-	def eval(self, mapping):
-		s, a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		s, a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(a, b, s)
 
@@ -114,14 +114,14 @@ class _RandomRealOperator:
 		raise ValueError('Only apply real numbers as input')
 
 class RandomRealOperator(BinaryOperator, _RandomRealOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(a, b)
 
 class RandomRealWithSeedOperator(TernaryOperator, _RandomRealOperator):
-	def eval(self, mapping):
-		s, a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		s, a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(a, b, s)
 
@@ -137,14 +137,14 @@ class _RandomComplexOperator:
 
 class RandomComplexOperator(Operator, _RandomComplexOperator):
 	ary = 4
-	def eval(self, mapping):
-		a, b, c, d = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b, c, d = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(a, b, c, d)
 
 class RandomComplexWithSeedOperator(Operator, _RandomComplexOperator):
 	ary = 5
-	def eval(self, mapping):
-		s, a, b, c, d = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		s, a, b, c, d = self.eval_and_extract_constants(mapping, **kwargs)
 
 		return self._eval(a, b, c, d, s)

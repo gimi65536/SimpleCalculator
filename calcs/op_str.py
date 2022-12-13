@@ -14,8 +14,8 @@ from sympy.parsing.sympy_parser import (
 )
 
 class LengthOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		if not a.is_str:
 			raise ValueError('Only apply to strings')
@@ -57,8 +57,8 @@ but the other denotes "4".
 USE "=" INSTEAD OF "==" IF POSSUBLE TO GET WHAT YOU WANT, ANYWAY.
 '''
 class SymParseOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		if not a.is_str:
 			raise ValueError('Only apply to strings')
@@ -110,8 +110,8 @@ class SymParseOperator(UnaryOperator):
 		return a.without_dummy()
 
 class StrictSymParseOperator(SymParseOperator):
-	def eval(self, mapping):
-		result = super().eval(mapping)
+	def eval(self, mapping, **kwargs):
+		result = super().eval(mapping, **kwargs)
 
 		if result.is_str:
 			raise ValueError(f'Cannot parse {result.value} into a number/Boolean value')

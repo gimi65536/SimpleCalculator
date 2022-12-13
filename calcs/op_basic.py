@@ -4,8 +4,8 @@ from sympy import Eq, Ne
 from typing import Optional, overload
 
 class PlusOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		if a.is_str or b.is_str:
 			a, b = a.to_str(), b.to_str()
@@ -17,8 +17,8 @@ class PlusOperator(BinaryOperator):
 			return NumberConstant(a.value + b.value)
 
 class MinusOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		if a.is_str or b.is_str:
 			raise ValueError('Invalid string subtraction')
@@ -29,8 +29,8 @@ class MinusOperator(BinaryOperator):
 			return NumberConstant(a.value - b.value)
 
 class MultipleOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		if a.is_str or b.is_str:
 			# a:num/bool b:str
@@ -56,8 +56,8 @@ class MultipleOperator(BinaryOperator):
 			return NumberConstant(a.value * b.value)
 
 class DivideOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		if a.is_number and b.is_number:
 			return NumberConstant(a.value / b.value)
@@ -65,8 +65,8 @@ class DivideOperator(BinaryOperator):
 			raise ValueError('Invalid type division')
 
 class IntegerDivideOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		if a.is_number and b.is_number:
 			return NumberConstant(a.value // b.value)
@@ -74,8 +74,8 @@ class IntegerDivideOperator(BinaryOperator):
 			raise ValueError('Invalid type division')
 
 class ModuloOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		if a.is_number and b.is_number:
 			return NumberConstant(a.value % b.value)
@@ -83,8 +83,8 @@ class ModuloOperator(BinaryOperator):
 			raise ValueError('Invalid type division')
 
 class PositiveOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		if a.is_number:
 			return a.without_dummy()
@@ -92,8 +92,8 @@ class PositiveOperator(UnaryOperator):
 			raise ValueError('Only positive number')
 
 class NegativeOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		if a.is_number:
 			return NumberConstant(-a.value)
@@ -101,8 +101,8 @@ class NegativeOperator(UnaryOperator):
 			raise ValueError('Only negative number')
 
 class NotOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		if a.is_bool:
 			return BooleanConstant(not a.value)
@@ -113,18 +113,18 @@ class NotOperator(UnaryOperator):
 class _BinaryBoolOperator(BinaryOperator):
 	_shortcut: bool = True
 
-	def eval(self, mapping):
+	def eval(self, mapping, **kwargs):
 		if self._shortcut:
-			a = self.eval_and_extract_constant(0, mapping).to_bool()
+			a = self.eval_and_extract_constant(0, mapping, **kwargs).to_bool()
 			result = self._logic(a.value)
 
 			if result is not None:
 				return BooleanConstant(result)
 
-			b = self.eval_and_extract_constant(1, mapping).to_bool()
+			b = self.eval_and_extract_constant(1, mapping, **kwargs).to_bool()
 			return BooleanConstant(self._logic(a.value, b.value))
 		else:
-			a, b = self.eval_and_extract_constants(mapping)
+			a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 			a, b = a.to_bool(), b.to_bool()
 			return BooleanConstant(self._logic(a.value, b.value))
@@ -214,26 +214,26 @@ class ConverseNimplOperator(_BinaryBoolOperator):
 			return False
 
 class ConcatOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		a, b = a.to_str(), b.to_str()
 		return StringConstant(a.value + b.value)
 
 class IfThenElseOperator(TernaryOperator):
-	def eval(self, mapping):
-		a = self.eval_operand(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_operand(0, mapping, **kwargs)
 		a = a.extract_constant(a)[0]
 		a = a.to_bool()
 
 		if a.value:
-			return self.eval_operand(1, mapping)
+			return self.eval_operand(1, mapping, **kwargs)
 		else:
-			return self.eval_operand(2, mapping)
+			return self.eval_operand(2, mapping, **kwargs)
 
 class EqualOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		if type(a) != type(b):
 			return BooleanConstant(False)
@@ -241,8 +241,8 @@ class EqualOperator(BinaryOperator):
 		return BooleanConstant(bool(Eq(a.value, b.value).simplify()))
 
 class NonequalOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		if type(a) != type(b):
 			return BooleanConstant(True)
@@ -250,8 +250,8 @@ class NonequalOperator(BinaryOperator):
 		return BooleanConstant(bool(Ne(a.value, b.value).simplify()))
 
 class _BinaryComparisonOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 		if a.is_bool:
 			a = a.to_number()
 		if b.is_bool:

@@ -3,8 +3,8 @@ from .ops import BinaryOperator, TernaryOperator, UnaryOperator
 import sympy
 
 class AbsOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		if not a.is_number:
 			raise ValueError('Only apply to numbers')
@@ -12,8 +12,8 @@ class AbsOperator(UnaryOperator):
 		return NumberConstant(sympy.Abs(a.value))
 
 class PowOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_and_extract_constants(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_and_extract_constants(mapping, **kwargs)
 
 		if a.is_number and b.is_number:
 			return NumberConstant(a.value ** b.value)
@@ -21,8 +21,8 @@ class PowOperator(BinaryOperator):
 		raise ValueError('Only apply to numbers')
 
 class FactorialOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		if not a.is_number:
 			raise ValueError('Only apply to numbers')
@@ -33,8 +33,8 @@ class FactorialOperator(UnaryOperator):
 			raise ValueError('Only accepts nonnegative integer')
 
 class RealOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		if not a.is_number:
 			raise ValueError('Only apply to numbers')
@@ -42,8 +42,8 @@ class RealOperator(UnaryOperator):
 		return NumberConstant(sympy.re(a.value))
 
 class ImagOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_and_extract_constant(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 
 		if not a.is_number:
 			raise ValueError('Only apply to numbers')
@@ -52,8 +52,8 @@ class ImagOperator(UnaryOperator):
 
 # ++x
 class IncrementOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_operand(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_operand(0, mapping, **kwargs)
 		if a.is_lvalue and a.content.is_number:
 			a.content = NumberConstant(a.content.value + 1)
 			return a
@@ -62,8 +62,8 @@ class IncrementOperator(UnaryOperator):
 
 # x++
 class PostIncrementOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_operand(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_operand(0, mapping, **kwargs)
 		if a.is_lvalue and a.content.is_number:
 			result = a.content
 			a.content = NumberConstant(result.value + 1)
@@ -73,8 +73,8 @@ class PostIncrementOperator(UnaryOperator):
 
 # --x
 class DecrementOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_operand(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_operand(0, mapping, **kwargs)
 		if a.is_lvalue and a.content.is_number:
 			a.content = NumberConstant(a.content.value - 1)
 			return a
@@ -83,8 +83,8 @@ class DecrementOperator(UnaryOperator):
 
 # x--
 class PostDecrementOperator(UnaryOperator):
-	def eval(self, mapping):
-		a = self.eval_operand(0, mapping)
+	def eval(self, mapping, **kwargs):
+		a = self.eval_operand(0, mapping, **kwargs)
 		if a.is_lvalue and a.content.is_number:
 			result = a.content
 			a.content = NumberConstant(result.value - 1)

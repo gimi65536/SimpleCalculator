@@ -49,7 +49,7 @@ class Var(TreeNodeType):
 	def scope(self, s: Any):
 		self._scope = s
 
-	def eval(self, mapping):
+	def eval(self, mapping, **kwargs):
 		if self not in mapping:
 			raise ValueError(f'Variable "{self._name}" is undefined')
 
@@ -115,7 +115,7 @@ class Constant(TreeNodeType, Value, Generic[ConstType]):
 	def value(self) -> ConstType:
 		return self._value
 
-	def eval(self, mapping):
+	def eval(self, mapping, **kwargs):
 		return self
 
 	def apply_var(self, f):
@@ -327,20 +327,20 @@ class Operator(TreeNodeType):
 	def __repr__(self):
 		return type(self).__name__ + '(' + ', '.join(repr(o) for o in self._operands) + ')'
 
-	def eval(self, mapping):
+	def eval(self, mapping, **kwargs):
 		raise NotImplementedError
 
-	def eval_operand(self, i: int, mapping: Mapping[Var, LValue]) -> Value:
-		return self._operands[i].eval(mapping)
+	def eval_operand(self, i: int, mapping: Mapping[Var, LValue], **kwargs) -> Value:
+		return self._operands[i].eval(mapping, **kwargs)
 
-	def eval_operands(self, mapping: Mapping[Var, LValue]) -> list[Value]:
-		return [o.eval(mapping) for o in self._operands]
+	def eval_operands(self, mapping: Mapping[Var, LValue], **kwargs) -> list[Value]:
+		return [o.eval(mapping, **kwargs) for o in self._operands]
 
-	def eval_and_extract_constant(self, i: int, mapping: Mapping[Var, LValue]) -> Constant:
-		return self.extract_constant(self.eval_operand(i, mapping))
+	def eval_and_extract_constant(self, i: int, mapping: Mapping[Var, LValue], **kwargs) -> Constant:
+		return self.extract_constant(self.eval_operand(i, mapping, **kwargs))
 
-	def eval_and_extract_constants(self, mapping: Mapping[Var, LValue]) -> list[Constant]:
-		return self.extract_constants(*self.eval_operands(mapping))
+	def eval_and_extract_constants(self, mapping: Mapping[Var, LValue], **kwargs) -> list[Constant]:
+		return self.extract_constants(*self.eval_operands(mapping, **kwargs))
 
 	def apply_var(self, f):
 		for o in self._operands:

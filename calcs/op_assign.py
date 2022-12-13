@@ -2,8 +2,8 @@ from .types import *
 from .ops import BinaryOperator
 
 class AssignOperator(BinaryOperator):
-	def eval(self, mapping):
-		a, b = self.eval_operands(mapping)
+	def eval(self, mapping, **kwargs):
+		a, b = self.eval_operands(mapping, **kwargs)
 		b = self.extract_constant(b)
 
 		if not a.is_lvalue:
