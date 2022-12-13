@@ -13,6 +13,7 @@ from . import (
 	op_str,
 	op_utils
 )
+TEMPVAR = op_assign.TEMPVAR
 
 def give_basic_parser():
 	default_precedence_table = {
