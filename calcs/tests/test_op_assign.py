@@ -61,3 +61,21 @@ def test_declare():
 def test_redeclare():
 	with pytest.raises(ValueError):
 		n = adv_parser.parse("x := x := 42").eval({})
+
+def test_ref(mapping):
+	n = adv_parser.parse("z :=& x").eval(mapping)
+	assert len(mapping) == 3
+	assert n.is_lvalue
+	assert n.var.name == "x"
+	assert n.value == 42
+
+def test_ref_assign(x, mapping):
+	n = adv_parser.parse("pass(z :=& x, z = y.514)").eval(mapping)
+	assert len(mapping) == 3
+	assert n.is_lvalue
+	assert n.var.name == "x"
+	assert n.value == "114514"
+
+def test_ref_redeclare(mapping):
+	with pytest.raises(ValueError):
+		n = adv_parser.parse("y :=& x").eval(mapping)

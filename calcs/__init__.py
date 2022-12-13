@@ -98,6 +98,7 @@ def give_advanced_parser(additional_prefix = [], additional_postfix = []):
 		200: PrecedenceLayer.right_asso(
 			OperatorInfo(op_assign.AssignOperator, '='),
 			OperatorInfo(op_assign.DeclareOperator, ':='),
+			OperatorInfo(op_assign.DeclareReferenceOperator, ':=&'),
 		),
 	}
 

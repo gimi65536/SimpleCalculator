@@ -7,6 +7,10 @@ from typing import Any, Generic, TypeVar, Union
 TEMPVAR = object()
 
 class TreeNodeType:
+	# Note that for the items (car, lvalue) in mapping,
+	# it is syntactically not needed to make var == lvalue.var
+	# And, semantically, this feature helps us to
+	# implement "reference."
 	def eval(self, mapping: Mapping[Var, LValue]) -> Value:
 		raise NotImplementedError
 
