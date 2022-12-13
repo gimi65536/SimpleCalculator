@@ -1,12 +1,10 @@
 import pytest
 import calcs
-from calcs import LValue, OperatorInfo, Var
+from calcs import LValue, Var
 from calcs.op_assign import *
 from sympy import Integer, Rational
 
-adv_parser = calcs.give_advanced_parser(
-	additional_prefix = [OperatorInfo(AssignWithAnonymousOperator, ':=')]
-)
+adv_parser = calcs.give_advanced_parser()
 
 @pytest.fixture
 def x():
@@ -51,11 +49,3 @@ def test_assign_var(x, y, yvalue, mapping):
 def test_assign_dummy(x, mapping):
 	n = adv_parser.parse("x = _").eval(mapping)
 	assert not n.content.is_dummy
-
-def test_anonymous_assign():
-	mapping = {}
-	n = adv_parser.parse(":= (x, 42)").eval(mapping)
-	assert n.is_lvalue
-	assert n.var.name == "x"
-	assert n.var.scope is TEMPVAR
-	assert mapping[n.var].value == 42
