@@ -4,6 +4,7 @@ from .calculator import (
 	Parser,
 	PrecedenceLayer
 )
+from .ops import *
 from .types import *
 from . import (
 	op_assign,
