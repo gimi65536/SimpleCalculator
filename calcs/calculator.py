@@ -767,6 +767,9 @@ class Parser:
 		else:
 			raise ParseError(node.position, f'Unknown error: Invalid for semantic trees {type(node)}: {node}')
 
+	def is_op_symbol(self, s: str) -> bool:
+		return s in self._op_symbols
+
 	def parse(self, s: str) -> TreeNodeType:
 		LP= self.LP
 		RP = self.RP
@@ -798,7 +801,7 @@ class Parser:
 			elif token.is_string_const:
 				is_str = True
 			else:
-				if token.string in self._op_symbols:
+				if self.is_op_symbol(token.string):
 					is_op = True
 
 			match status:
