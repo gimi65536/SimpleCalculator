@@ -94,4 +94,16 @@ class MoveOperator(UnaryOperator):
 	def eval(self, mapping, **kwargs):
 		return self.eval_and_extract_constant(0, mapping, **kwargs)
 
+class TypeOperator(UnaryOperator):
+	def eval(self, mapping, **kwargs):
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
+		if a.is_number:
+			return StringConstant('number')
+		elif a.is_bool:
+			return StringConstant('boolean')
+		elif a.is_str:
+			return StringConstant('string')
+
+		raise ValueError('Unknown constant type')
+
 __all__ = filter_operator(globals())

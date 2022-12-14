@@ -9,6 +9,7 @@ adv_parser = calcs.give_advanced_parser(additional_prefix = [
 	OperatorInfo(DedummizeOperator, 'dedummy'),
 	OperatorInfo(RepeatTwiceOperator, 'repeat2'),
 	OperatorInfo(RepeatTimesOperator, 'repeatN'),
+	OperatorInfo(TypeOperator, 'type'),
 ])
 
 @pytest.fixture
@@ -103,3 +104,23 @@ def test_move_const(mapping):
 	n = adv_parser.parse("move(1+1)").eval(mapping)
 	assert n.is_constant
 	assert n.value == 2
+
+def test_type_number():
+	n = adv_parser.parse("type(42)").eval({})
+	assert n.is_str
+	assert n.value == "number"
+
+def test_type_boolean():
+	n = adv_parser.parse("type(true)").eval({})
+	assert n.is_str
+	assert n.value == "boolean"
+
+def test_type_string():
+	n = adv_parser.parse("type 'foo'").eval({})
+	assert n.is_str
+	assert n.value == "string"
+
+def test_type_var(mapping):
+	n = adv_parser.parse("type(x)").eval(mapping)
+	assert n.is_str
+	assert n.value == "number"
