@@ -223,8 +223,7 @@ class ConcatOperator(BinaryOperator):
 
 class IfThenElseOperator(TernaryOperator):
 	def eval(self, mapping, **kwargs):
-		a = self.eval_operand(0, mapping, **kwargs)
-		a = a.extract_constant(a)[0]
+		a = self.eval_and_extract_constant(0, mapping, **kwargs)
 		a = a.to_bool()
 
 		if a.value:

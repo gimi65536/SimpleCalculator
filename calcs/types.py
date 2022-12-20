@@ -1,5 +1,5 @@
 from __future__ import annotations
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, MutableMapping, Sequence
 from sympy import Expr, floor, Integer, simplify
 from sympy.codegen.cfunctions import log10
 from typing import Any, Generic, Optional, TypeVar
@@ -25,7 +25,7 @@ class TreeNodeType:
 	# it is syntactically not needed to make var == lvalue.var
 	# And, semantically, this feature helps us to
 	# implement "reference."
-	def eval(self, mapping: Mapping[Var, LValue], **kwargs) -> Value:
+	def eval(self, mapping: MutableMapping[Var, LValue], **kwargs) -> Value:
 		raise NotImplementedError
 
 	def apply_var(self, f: Callable[[Var], Any]):
@@ -357,16 +357,16 @@ class Operator(TreeNodeType):
 	def eval(self, mapping, **kwargs):
 		raise NotImplementedError
 
-	def eval_operand(self, i: int, mapping: Mapping[Var, LValue], **kwargs) -> Value:
+	def eval_operand(self, i: int, mapping: MutableMapping[Var, LValue], **kwargs) -> Value:
 		return self._operands[i].eval(mapping, **kwargs)
 
-	def eval_operands(self, mapping: Mapping[Var, LValue], **kwargs) -> list[Value]:
+	def eval_operands(self, mapping: MutableMapping[Var, LValue], **kwargs) -> list[Value]:
 		return [o.eval(mapping, **kwargs) for o in self._operands]
 
-	def eval_and_extract_constant(self, i: int, mapping: Mapping[Var, LValue], **kwargs) -> Constant:
+	def eval_and_extract_constant(self, i: int, mapping: MutableMapping[Var, LValue], **kwargs) -> Constant:
 		return self.extract_constant(self.eval_operand(i, mapping, **kwargs))
 
-	def eval_and_extract_constants(self, mapping: Mapping[Var, LValue], **kwargs) -> list[Constant]:
+	def eval_and_extract_constants(self, mapping: MutableMapping[Var, LValue], **kwargs) -> list[Constant]:
 		return self.extract_constants(*self.eval_operands(mapping, **kwargs))
 
 	def apply_var(self, f):

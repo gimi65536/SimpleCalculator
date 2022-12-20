@@ -426,3 +426,30 @@ class TestCompare:
 		n = parser.parse("I >= I").eval({})
 		assert n.is_bool
 		assert n.value is True
+
+class TestIfThenElse:
+	parser = calcs.Parser(
+		ptable = [calcs.PrecedenceLayer.right_asso(OperatorInfo(calcs.op_assign.AssignOperator, '='))],
+		prefix_ops = [
+			OperatorInfo(IfThenElseOperator, 'ifthenelse'),
+	])
+
+	def test_true_branch(self):
+		n = self.parser.parse("ifthenelse(true, 1, 0)").eval({})
+		assert n.is_number
+		assert n.value == 1
+
+	def test_false_branch(self):
+		n = self.parser.parse("ifthenelse(false, 1, 0)").eval({})
+		assert n.is_number
+		assert n.value == 0
+
+	def test_true_side_effect(self, x, mapping):
+		n = self.parser.parse("ifthenelse (true, x=1, x=0)").eval(mapping)
+		assert n.is_lvalue
+		assert mapping[x].value == 1
+
+	def test_false_side_effect(self, x, mapping):
+		n = self.parser.parse("ifthenelse (false, x=1, x=0)").eval(mapping)
+		assert n.is_lvalue
+		assert mapping[x].value == 0

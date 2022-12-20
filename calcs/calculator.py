@@ -1,6 +1,5 @@
 from __future__ import annotations
 from .exceptions import *
-from .op_basic import *
 from .types import *
 from collections import Counter
 from collections.abc import Callable, Sequence
@@ -494,8 +493,7 @@ class Parser:
 		_is_tuple = True
 
 		def __init__(self, t: tuple[Parser.SyntaxTreeNode, ...], position: int):
-			self.content = t
-			self.position = position
+			super().__init__(t, position)
 
 	def __init__(self,
 		prefix_ops: list[OperatorInfo] = [],

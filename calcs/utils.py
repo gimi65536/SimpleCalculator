@@ -19,3 +19,8 @@ def filter_operator(g: dict[str, object]) -> list[str]:
 		name.endswith('Operator') and
 		name not in ('Operator', 'NullaryOperator', 'UnaryOperator', 'BinaryOperator', 'TernaryOperator')
 	]
+
+__all__ = (
+	'mapping_flatten',
+	'filter_operator',
+)
