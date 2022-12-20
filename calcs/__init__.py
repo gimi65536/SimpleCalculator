@@ -63,7 +63,12 @@ def give_basic_parser():
 
 	return Parser(default_prefix_ops, default_postfix_ops, default_precedence_table)
 
-def give_advanced_parser(additional_prefix = [], additional_postfix = []):
+def give_advanced_parser(additional_prefix = None, additional_postfix = None):
+	if additional_prefix is None:
+		additional_prefix = []
+	if additional_postfix is None:
+		additional_postfix = []
+
 	default_precedence_table = {
 		9: PrecedenceLayer.right_asso(
 			*OperatorInfo.factory(op_num.PowOperator, '**', '^')

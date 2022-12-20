@@ -1,8 +1,8 @@
 from __future__ import annotations
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from sympy import Expr, floor, Integer, simplify
 from sympy.codegen.cfunctions import log10
-from typing import Any, Generic, TypeVar, Union
+from typing import Any, Generic, Optional, TypeVar
 
 __all__ = (
 	'TEMPVAR',
@@ -130,7 +130,7 @@ class Constant(TreeNodeType, Value, Generic[ConstType]):
 		return type(self)(self._value)
 
 	def __init__(self, value: ConstType):
-		self._value = value
+		self._value: ConstType = value
 
 	def __str__(self):
 		return str(self._value)
@@ -343,7 +343,7 @@ class LValue(Value):
 class Operator(TreeNodeType):
 	# An immutable type
 	ary: int
-	_operands: list[TreeNodeType]
+	_operands: Sequence[TreeNodeType]
 
 	def __init__(self, *args: TreeNodeType):
 		if len(args) != self.ary:
@@ -378,6 +378,7 @@ class Operator(TreeNodeType):
 		if isinstance(value, Constant):
 			return value
 		else:
+			assert isinstance(value, LValue)
 			return value.content
 
 	@classmethod

@@ -8,7 +8,7 @@ from enum import Enum
 from itertools import chain
 from more_itertools import sliding_window
 from sympy import Float, I, Rational
-from typing import cast, Optional
+from typing import Any, cast, Optional
 import random
 import re
 
@@ -158,6 +158,7 @@ class Lexer:
 		if self.word_re is not None:
 			return all(self.word_re.match(c) for c in s)
 		else:
+			assert self.symbol_re is not None
 			return not any(self.symbol_re.match(c) for c in s)
 
 	def full_symbol(self, s: str) -> bool:
@@ -165,6 +166,7 @@ class Lexer:
 		if self.symbol_re is not None:
 			return all(self.symbol_re.match(c) for c in s)
 		else:
+			assert self.word_re is not None
 			return not any(self.word_re.match(c) for c in s)
 
 	def __init__(self,
@@ -208,7 +210,7 @@ class Lexer:
 			self.space_re = space_re
 
 		if token_preprocessors is None:
-			self._token_preprocessors = ()
+			self._token_preprocessors: Sequence[Callable[[Sequence[Token]], Sequence[Token]]] = ()
 		else:
 			self._token_preprocessors = token_preprocessors
 
@@ -354,13 +356,14 @@ class Lexer:
 		# Note that no empty string in first list
 
 		# Second, restore numbers with decimal points
+		processed_tokens: Sequence[Token] = first
 		for token_preprocessor in self._token_preprocessors:
-			first = token_preprocessor(first)
+			processed_tokens = token_preprocessor(processed_tokens)
 
 		result: list[Token] = []
-		for token in first:
+		for token in processed_tokens:
 			if token.is_symbol:
-				find = self._find(token)
+				find = self._find(cast(SymbolToken, token))
 				if find is None:
 					raise TokenizeError(token.position, f'Tokenize error with the symbols "{token.string}"')
 				result.extend(find)
@@ -388,7 +391,7 @@ class Parser:
 		WAIT_INFIX = 2
 
 	class SyntaxTreeNode:
-		def __init__(self, content: str, position: int):
+		def __init__(self, content: Any, position: int):
 			self.content = content
 			self.position = position
 
@@ -451,13 +454,13 @@ class Parser:
 	class OpNode(SyntaxTreeNode):
 		_is_op = True
 
-		def __init__(self, symbol: str, position: int, operand: Optional[SyntaxTreeNode] = None):
+		def __init__(self, symbol: str, position: int, operand: Optional[Parser.SyntaxTreeNode] = None):
 			# operand is None in op_stack, not None in total_stack
 			super().__init__(symbol, position)
 			self._operand = operand
 
 		@property
-		def operand(self) -> Optional[SyntaxTreeNode]:
+		def operand(self) -> Optional[Parser.SyntaxTreeNode]:
 			return self._operand
 
 		def __str__(self):
@@ -490,7 +493,7 @@ class Parser:
 	class TupleNode(SyntaxTreeNode):
 		_is_tuple = True
 
-		def __init__(self, t: tuple[SyntaxTreeNode, ...], position: int):
+		def __init__(self, t: tuple[Parser.SyntaxTreeNode, ...], position: int):
 			self.content = t
 			self.position = position
 
@@ -540,7 +543,7 @@ class Parser:
 		# Build tables
 
 		# Infix operator
-		self._infix_table: dict[str, Operator] = {op_info.symbol: op_info.op for op_info in chain.from_iterable(self._ptable.values())}
+		self._infix_table: dict[str, type[Operator]] = {op_info.symbol: op_info.op for op_info in chain.from_iterable(self._ptable.values())}
 		self._infix_precedence_table: dict[str, int] = {op_info.symbol: precedence for precedence, layer in self._ptable.items() for op_info in layer}
 		self._infix_asso_table: dict[str, Associability] = {op_info.symbol: layer.asso for precedence, layer in self._ptable.items() for op_info in layer}
 
@@ -549,7 +552,7 @@ class Parser:
 				raise ParserConstructError(f'Infix operator {symbol} is {op.ary}-ary, binary is needed for infix operators')
 
 		# Prefix operator can be overloaded... like functions
-		self._prefix_table: dict[str, dict[int, Operator]] = {}
+		self._prefix_table: dict[str, dict[int, type[Operator]]] = {}
 		for prefix_op in self._prefix_ops:
 			symbol, ary, op = prefix_op.symbol, prefix_op.ary, prefix_op.op
 			if symbol not in self._prefix_table:
@@ -562,7 +565,7 @@ class Parser:
 
 		# Postfix operator can be overloaded...
 		# However I don't think it is a good idea to have a prefix operator other than unary.
-		self._postfix_table: dict[str, dict[int, Operator]] = {}
+		self._postfix_table: dict[str, dict[int, type[Operator]]] = {}
 		for postfix_op in self._postfix_ops:
 			symbol, ary, op = postfix_op.symbol, postfix_op.ary, postfix_op.op
 			if symbol in self._infix_table:
@@ -721,7 +724,7 @@ class Parser:
 		elif node.is_word:
 			return self.str_to_const(node.content)
 		elif node.is_op:
-			node = cast(OpNode, node)
+			node = cast(Parser.OpNode, node)
 			operand = node.operand
 			if operand is None:
 				raise ParseError(node.position, 'Unknown error: Operator with no operand')
@@ -729,12 +732,12 @@ class Parser:
 			if node.is_prefix_op or node.is_postfix_op:
 				# prefix
 				ary: int
-				operands_node: tuple[SyntaxTreeNode, ...]
+				operands_node: tuple[Parser.SyntaxTreeNode, ...]
 				if not operand.is_tuple:
 					ary = 1
 					operands_node = (operand, )
 				else:
-					cast(TupleNode, operand)
+					cast(Parser.TupleNode, operand)
 					operands_node = operand.content
 					ary = len(operands_node)
 
@@ -755,7 +758,7 @@ class Parser:
 				if not operand.is_tuple:
 					raise ParseError(node.position, 'Unknown error: Infix operator has only one operand')
 
-				cast(TupleNode, operand)
+				cast(Parser.TupleNode, operand)
 				t = operand.content
 				if len(t) != 2:
 					raise ParseError(node.position, f'Unknown error: Infix operator has {len(t)} operand')
@@ -788,7 +791,8 @@ class Parser:
 		tokens = self._lexer.tokenize(s)
 		status = S.INITIAL
 
-		op_stack, total_stack = [], []
+		op_stack: list[Parser.SyntaxTreeNode] = []
+		total_stack: list[Parser.SyntaxTreeNode] = []
 
 		for token in tokens:
 			# Symbol: should be an operator
