@@ -712,9 +712,6 @@ class Parser:
 		return second
 
 	def _to_semantic_tree(self, node: SyntaxTreeNode) -> TreeNodeType:
-		OpNode = self.OpNode
-		TupleNode = self.TupleNode
-
 		if node.is_str:
 			return StringConstant(node.content)
 		elif node.is_word:

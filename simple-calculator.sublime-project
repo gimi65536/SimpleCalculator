@@ -1,0 +1,23 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"PyTest": {
+			"mode": "auto",
+			"options": "--pyargs calcs"
+		},
+		"LSP": {
+			"LSP-pyright": {
+				"settings": {
+					"python.analysis.diagnosticSeverityOverrides": {
+						"reportGeneralTypeIssues": "warning",
+					}
+				}
+			}
+		}
+	}
+}
