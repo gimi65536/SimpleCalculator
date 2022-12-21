@@ -98,9 +98,6 @@ class Token:
 		else:
 			self._o = origin
 
-	def __iter__(self):
-		return iter((self._s, self._p, self._o))
-
 	@property
 	def string(self) -> str:
 		return self._s
@@ -264,6 +261,7 @@ class Lexer:
 		if self.word_re is not None:
 			return self.word_re.match(c)
 		else:
+			assert self.symbol_re is not None
 			return self.symbol_re.match(c)
 
 	def tokenize(self, s: str) -> list[Token]:
@@ -684,9 +682,9 @@ class Parser:
 			if processed >= i:
 				continue
 
-			s1, i1, o1 = t1
-			s2, i2, o2 = t2
-			s3, i3, o3 = t3
+			s1, i1, o1 = t1.string, t1.position, t1.origin
+			s2, i2, o2 = t2.string, t2.position, t2.origin
+			s3, i3, o3 = t3.string, t3.position, t3.origin
 
 			if t2.is_symbol and s2 == self.DECIMAL_POINT:
 				# Have decimal point, of course...

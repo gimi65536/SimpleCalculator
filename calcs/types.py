@@ -2,7 +2,7 @@ from __future__ import annotations
 from collections.abc import Callable, MutableMapping, Sequence
 from sympy import Expr, floor, Integer, simplify
 from sympy.codegen.cfunctions import log10
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Generic, no_type_check, Optional, TypeVar
 
 __all__ = (
 	'TEMPVAR',
@@ -207,7 +207,7 @@ class NumberConstant(Constant[Expr]):
 
 	# In general that will cause problems if we don't restrict the Expr types used
 	# Thus the value expressions should satisfy "is_number"
-	def __init__(self, value):
+	def __init__(self, value: Expr):
 		assert value.is_number
 		super().__init__(value)
 
@@ -228,6 +228,7 @@ class NumberConstant(Constant[Expr]):
 			result = getattr(self._simplify(), f'is_{what}')
 		return result
 
+	@no_type_check
 	def cast(self, to_type):
 		if to_type is NumberConstant:
 			return self
@@ -235,12 +236,12 @@ class NumberConstant(Constant[Expr]):
 			return BooleanConstant(bool(self._simplify()))
 		elif to_type is StringConstant:
 			s, v = '', self._simplify()
-			if v.is_integer:
+			if v.is_integer: # type: ignore
 				s = str(int(v))
 			elif v.is_Rational:
 				# Rational but not integer
-				p, q = v.p, v.q
-				factors = Integer(q).factors()
+				p, q = v.p, v.q # type: ignore
+				factors = Integer(q).factors() # type: ignore
 				p2 = factors.pop(2, 0)
 				p5 = factors.pop(5, 0)
 				if len(factors) > 0:
@@ -255,8 +256,8 @@ class NumberConstant(Constant[Expr]):
 						p *= 2 ** (p5 - p2)
 
 					precision = log10(q)
-					assert precision.is_Integer
-					digit_of_p = floor(log10(p)) + 1
+					assert precision.is_Integer # type: ignore
+					digit_of_p = floor(log10(p)) + 1 # type: ignore
 					if precision < digit_of_p:
 						# x--x.y--y [y--y: precision]
 						s = str(p)
@@ -265,7 +266,7 @@ class NumberConstant(Constant[Expr]):
 						s = "0." + ("0" * (precision - digit_of_p)) + str(p)
 			elif v.is_Float:
 				s = str(v.evalf())
-			elif v.is_irrational:
+			elif v.is_irrational: # type: ignore
 				# Other real numbers
 				s = str(v.evalf())
 			else:
