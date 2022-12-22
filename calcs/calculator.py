@@ -7,7 +7,7 @@ from enum import Enum
 from itertools import chain
 from more_itertools import sliding_window
 from sympy import Float, I, Rational
-from typing import Any, cast, Optional
+from typing import Any, Optional, TYPE_CHECKING
 import random
 import re
 
@@ -360,7 +360,10 @@ class Lexer:
 		result: list[Token] = []
 		for token in processed_tokens:
 			if token.is_symbol:
-				find = self._find(cast(SymbolToken, token))
+				if TYPE_CHECKING:
+					assert isinstance(token, SymbolToken)
+
+				find = self._find(token)
 				if find is None:
 					raise TokenizeError(token.position, f'Tokenize error with the symbols "{token.string}"')
 				result.extend(find)
@@ -717,7 +720,9 @@ class Parser:
 		elif node.is_word:
 			return self.str_to_const(node.content)
 		elif node.is_op:
-			node = cast(Parser.OpNode, node)
+			if TYPE_CHECKING:
+				assert isinstance(node, Parser.OpNode)
+
 			operand = node.operand
 			if operand is None:
 				raise ParseError(node.position, 'Unknown error: Operator with no operand')
@@ -730,7 +735,9 @@ class Parser:
 					ary = 1
 					operands_node = (operand, )
 				else:
-					cast(Parser.TupleNode, operand)
+					if TYPE_CHECKING:
+						assert isinstance(operand, Parser.TupleNode)
+
 					operands_node = operand.content
 					ary = len(operands_node)
 
@@ -751,7 +758,9 @@ class Parser:
 				if not operand.is_tuple:
 					raise ParseError(node.position, 'Unknown error: Infix operator has only one operand')
 
-				cast(Parser.TupleNode, operand)
+				if TYPE_CHECKING:
+					assert isinstance(operand, Parser.TupleNode)
+
 				t = operand.content
 				if len(t) != 2:
 					raise ParseError(node.position, f'Unknown error: Infix operator has {len(t)} operand')

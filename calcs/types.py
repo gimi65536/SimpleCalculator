@@ -236,12 +236,12 @@ class NumberConstant(Constant[Expr]):
 			return BooleanConstant(bool(self._simplify()))
 		elif to_type is StringConstant:
 			s, v = '', self._simplify()
-			if v.is_integer: # type: ignore
+			if v.is_integer:
 				s = str(int(v))
 			elif v.is_Rational:
 				# Rational but not integer
-				p, q = v.p, v.q # type: ignore
-				factors = Integer(q).factors() # type: ignore
+				p, q = v.p, v.q
+				factors = Integer(q).factors()
 				p2 = factors.pop(2, 0)
 				p5 = factors.pop(5, 0)
 				if len(factors) > 0:
@@ -256,8 +256,8 @@ class NumberConstant(Constant[Expr]):
 						p *= 2 ** (p5 - p2)
 
 					precision = log10(q)
-					assert precision.is_Integer # type: ignore
-					digit_of_p = floor(log10(p)) + 1 # type: ignore
+					assert precision.is_Integer
+					digit_of_p = floor(log10(p)) + 1
 					if precision < digit_of_p:
 						# x--x.y--y [y--y: precision]
 						s = str(p)
@@ -266,7 +266,7 @@ class NumberConstant(Constant[Expr]):
 						s = "0." + ("0" * (precision - digit_of_p)) + str(p)
 			elif v.is_Float:
 				s = str(v.evalf())
-			elif v.is_irrational: # type: ignore
+			elif v.is_irrational:
 				# Other real numbers
 				s = str(v.evalf())
 			else:
